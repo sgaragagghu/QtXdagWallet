@@ -1,0 +1,7 @@
+*.Release
+*.Debug
+*.pro.user.*
+/Makefile
+*.dat
+ui_*.h
+*.pro.user

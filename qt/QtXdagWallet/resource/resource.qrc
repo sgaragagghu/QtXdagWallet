@@ -1,0 +1,19 @@
+<RCC>
+    <qresource prefix="/">
+        <file>language/chinese.ts</file>
+        <file>language/english.ts</file>
+        <file>language/chinese.qm</file>
+        <file>language/english.qm</file>
+        <file>icon/xdagwallet.ico</file>
+        <file>language/french.qm</file>
+        <file>language/french.ts</file>
+        <file>language/germany.qm</file>
+        <file>language/germany.ts</file>
+        <file>language/japanese.qm</file>
+        <file>language/japanese.ts</file>
+        <file>language/korean.qm</file>
+        <file>language/korean.ts</file>
+        <file>language/russian.qm</file>
+        <file>language/russian.ts</file>
+    </qresource>
+</RCC>

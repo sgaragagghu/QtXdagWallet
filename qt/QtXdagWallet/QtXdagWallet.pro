@@ -1,0 +1,127 @@
+#-------------------------------------------------
+#
+# Project created by QtCreator 2018-02-28T11:17:14
+#
+#-------------------------------------------------
+
+QT       += core gui
+
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+
+TARGET = QtXdagWallet
+TEMPLATE = app
+
+include($$PWD\pri\client.pri)
+include($$PWD\pri\dnet.pri)
+include($$PWD\pri\dbus.pri)
+include($$PWD\pri\ldbus.pri)
+include($$PWD\pri\win.pri)
+include($$PWD\pri\wrapper.pri)
+
+#include headers
+INCLUDEPATH += $$PWD\..\xdaglib
+INCLUDEPATH += $$PWD\win64_dependency\include
+
+#libs
+LIBS += -L$$PWD\win64_dependency\lib -llibeay32
+LIBS += -L$$PWD\win64_dependency\lib -lssleay32
+LIBS += -L$$PWD\win64_dependency\lib -lpthreadVC2
+LIBS += -L$$PWD\win64_dependency\lib -lWS2_32
+LIBS += -L$$PWD\win64_dependency\lib -llegacy_stdio_definitions
+
+#QMAKE_CFLAGS += -DSHA256_USE_OPENSSL_TXFM -DSHA256_OPENSSL_MBLOCK -DHAVE_STRUCT_TIMESPEC -D_TIMESPEC_DEFINED -DDFSTOOLS -DCHEATCOIN -DNDEBUG -Wall
+QMAKE_CFLAGS +=-DHAVE_STRUCT_TIMESPEC -D_TIMESPEC_DEFINED -DDFSTOOLS -DCHEATCOIN -DNDEBUG -D_CRT_SECURE_NO_WARNINGS -Wall
+
+#QMAKE_CXXFLAGS += -DSHA256_USE_OPENSSL_TXFM -DSHA256_OPENSSL_MBLOCK -DHAVE_STRUCT_TIMESPEC -D_TIMESPEC_DEFINED -DDFSTOOLS -DCHEATCOIN -DNDEBUG -Wall
+QMAKE_CXXFLAGS += -DHAVE_STRUCT_TIMESPEC -D_TIMESPEC_DEFINED -DDFSTOOLS -DCHEATCOIN -DNDEBUG -D_CRT_SECURE_NO_WARNINGS -Wall
+
+QMAKE_LFLAGS += -STACK:40000000,1000000 -FS
+
+# The following define makes your compiler emit warnings if you use
+# any feature of Qt which as been marked as deprecated (the exact warnings
+# depend on your compiler). Please consult the documentation of the
+# deprecated API in order to know how to port your code away from it.
+DEFINES += QT_DEPRECATED_WARNINGS
+
+# You can also make your code fail to compile if you use deprecated APIs.
+# In order to do so, uncomment the following line.
+# You can also select to disable deprecated APIs only up to a certain version of Qt.
+#DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
+
+
+SOURCES +=\
+    XdagWalletProcessThread.cpp \
+    QtWalletMain.cpp \
+    WalletMain.cpp \
+    PwdDialog.cpp \
+    WalletInitWidget.cpp \
+    PwdLineEdit.cpp
+
+HEADERS  += \
+    XdagWalletProcessThread.h \
+    QtWalletMain.h \
+    PwdDialog.h \
+    WalletInitWidget.h \
+    UiNotifyMessage.h \
+    UpdateUiInfo.h \
+    XdagCommonDefine.h \
+    PwdLineEdit.h
+
+FORMS    += qtwalletmain.ui \
+    walletinitwidget.ui \
+    pwddialog.ui
+
+RESOURCES += \
+    resource/resource.qrc
+
+TRANSLATIONS += \
+    english.ts \
+    chinese.ts \
+    russian.ts \
+    french.ts \
+    germany.ts \
+    japanese.ts \
+    korean.ts
+
+#copy dll to the dest dir
+win32 {
+    EXTRA_BINFILES += \
+        $$PWD/win64_dependency/dll/libeay32.dll \
+        $$PWD/win64_dependency/dll/libssl32.dll \
+        $$PWD/win64_dependency/dll/msvcr100.dll \
+        $$PWD/win64_dependency/dll/pthreadVC2.dll \
+        $$PWD/win64_dependency/dll/ssleay32.dll
+
+    EXTRA_BINFILES_WIN = $${EXTRA_BINFILES}
+    EXTRA_BINFILES_WIN ~= s,/,\\,g
+
+    debug{
+        DESTDIR = $$PWD\debug
+        OBJECTS_DIR = $$PWD\debug
+        MOC_DIR = $$PWD\debug
+        TARGET = xdagwallet
+        QMAKE_CLEAN += $$DESTDIR\*.pdb $$DESTDIR\*.dll $$DESTDIR\*.exe
+
+
+        DEBUG_DESTDIR_WIN = $${DESTDIR}
+        DEBUG_DESTDIR_WIN ~= s,/,\\,g
+        for(FILE,EXTRA_BINFILES_WIN){
+            QMAKE_POST_LINK +=$$quote(cmd /c copy /y $${FILE} $${DEBUG_DESTDIR_WIN}$$escape_expand(\n\t))
+        }
+    }
+
+    release{
+        DESTDIR = $$PWD\release
+        OBJECTS_DIR = $$PWD\release
+        MOC_DIR = $$PWD\release
+        TARGET = xdagwallet
+        QMAKE_CLEAN += $$DESTDIR\*.pdb $$DESTDIR\*.dll $$DESTDIR\*.exe
+
+        RELEASE_DESTDIR_WIN = $${DESTDIR}
+        RELEASE_DESTDIR_WIN ~= s,/,\\,g
+        for(FILE,EXTRA_BINFILES_WIN){
+            QMAKE_POST_LINK +=$$quote(cmd /c copy /y $${FILE} $${RELEASE_DESTDIR_WIN}$$escape_expand(\n\t))
+        }
+    }
+
+}
