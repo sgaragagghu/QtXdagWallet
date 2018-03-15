@@ -1,125 +1,75 @@
-The Dagger (XDAG) cryptocurrency
-================================
+The Dagger (XDAG) Qt Wallet
 
 - Community site: https://xdag.org
 - The Main net was launched January 5, 2018 at 22:45 GMT.
 
+- Purpose
 
-Principles:
-----------
+The purpose of the project is making a light Xdag Wallet that 
+can cross platform(such as Linux,Windows,MacOs) easily£¨and in the
+near future this project will be ported on Arm Architecture so that
+mobile devices can use the Xdag Wallet°£ 
 
-- Directed acyclic graph (DAG), not blockchain
-- Block = transaction = address
-- Original idea and implementation
-- Mineable, no premine, no ICO
-- Mining new money every 64 seconds
+for windows user,this project 
 
-
-Install and run (Linux):
+Install and run (windows):
 -----------------------
 
 - Install dependencies:
-
-		$ sudo dnf install git gcc openssl-devel
-		or
-		$ sudo apt-get install git gcc libssl-dev
+	visual studio 2015(2017):
+		https://www.visualstudio.com/downloads/
+		
+		Notice:
+		Remember choose the Visual C++ Componet
+	
+	Windows SDK( windows software development kit ):
+		https://docs.microsoft.com/zh-cn/windows-hardware/drivers/debugger/debugger-download-tools
+		
+		Notice:
+		When you install the win debuger,you must choose the option "Debugging Tools for windows"£¨if your are a starter of 
+		Windows SDK£¨all options are suggested to choose°£
+	
+	Qt5.7.1:
+		http://iso.mirrors.ustc.edu.cn/qtproject/archive/qt/5.7/5.7.1/qt-opensource-windows-x86-msvc2015_64-5.7.1.exe
+		
+		Notice:
+		Qt5.7.1 has been included Qt Creator 4.2.0
 
 - Clone from the git repository:
+        $ git clone https://github.com/amazingMan2017/QtXdagWallet.git
 
-        $ git clone https://github.com/XDagger/xdag
+- Open Qt Creator 4.2.0 and Configure the project
+		(1)Files --> Open Files Or Project
+			Open the Qt project file in the relative path "qt\QtXdagWallet\QtXdagWallet.pro"
 
-- Make:
+		(2) Configure the compiler and debugger
+			Tools --> Options --> Build and Run£¨and make sure the following option is auto detected
+			
+			Kit:
+				make sure the kit is Desktop Qt %{Qt:Version} MSVC2015_64bit
+			
+			Debugger:
+				make sure the Windows Debug Tools in the Windows SDK is auto detected:
+				my Windows Debug Tools is auto detected in the path "C:\Program Files (x86)\Windows Kits\10\Debuggers\x86\cdb.exe"
+			
+			Qt Version:
+				make sure you qmake.exe path is auto detected
+				my qt version is auto detected as "H:\Qt\Qt5.7.1\5.7\msvc2015_64\bin\qmake.exe";
+			
+			Compiler:
+				make sure your compiler is microsoft visual C++ 14.0 or higher
 
-        $ cd xdag/client
-        $ make
+		(3) Set the build dir
+			(Project --> Build)
+			Click the project button in the Qt Creator 4.2.0 and Configure the Build Options£¨DISABLE the Shadow Build
+			
+		(4) Copy your Xdag Wallet File (if you already have an Xdag Wallet Account JUST FOR DEVELOPMENT)
+			copy your xdag wallet file for development to the  relative path "QtXdagWallet\qt\QtXdagWallet"
 
-- Run, for example, the miner with 2 CPU mining threads, in daemon mode, connected to the pool put.xdag.server.here:13654
+		(5) Right Click the Project "QtXdagWallet " and Run
 
-        $ ./xdag -m 2 -d put.xdag.server.here:13654
-        Enter random characters: [enter]
-
-- Run terminal connected to the daemon in the same folder:
-
-        $ ./xdag -i
-        xdag> help
-        [see help]
-
-- See if you are connected to the pool:
-
-        xdag> state
-        [see state]
-
-- See your balance:
-
-        xdag> balance
-        [balance]
-
-- See your address:
-
-        xdag> account
-        [address]
-
-- Transfer funds to another address:
-
-        xdag> xfer [amount] [address]
-
-
-Main chain idea:
----------------
-
-Every block in DAG has up to 15 links to another blocks (inputs and outputs).
-Block B is _referenced_ by another block A if we can reach B from A by following the links.
-_Chain_ is a sequence of blocks each of which is referenced by the previous block.
-Chain is called _distinct_ if every its block belongs to separate 64-seconds interval.
-_Difficulty_of_block_ is 1/hash where _hash_ is sha256(sha256(block)) regarded as little-endian number.
-_Difficulty_of_chain_ is sum of difficulties of blocks.
-_Main_chain_ is the distinct chain with maximum difficulty.
-Blocks in main chain are called _main_blocks_.
-
-Daggers are mined in every main block.
-For first 4 years 1024 XDAG are mined in each main block.
-For second 4 years - 512 XDAG, and so on.
-So, maximum XDAG supply is approximately power(2,32).
-Each dagger is equal to power(2,32) cheatoshino.
-Transaction is _valid_ if it is referenced by a main block.
-Valid transactions are strictly ordered depending on main chain and links order.
-Double spending is prohibited because only first concurrent transaction (by this order) is applied.
-
-
-Structure of block:
-------------------
-
-_The on-disk format will change in the future. Consider this the network protocol._
-Each block has fixed size 512 bytes.
-Block consists of 16 fields each of whish has length 32 bytes.
-Field 0 is header, it consists of 4 quadwords:
-- transport-layer header
-- types of all 16 fields, 4 bits for one type
-- timestamp of the block, in seconds from Unix era * 1024
-- block fee in cheatoshi
-
-Types of fields:
-
-0. nonce
-1. header
-2. transaction input: 24 lower bytes of block hash and 8 bytes of input amount
-3. transaction output, structure is the same as input
-4. half of block signature; ECDSA number r or s; digest for signature is hash of (block concate public key)
-5. half of output signature; only owner of this key can use this block as input
-6. public key (x) with even y
-7. public key with odd y
-8. ... 15. are reserved for future usage.
-
-
-Transport layer:
----------------
-
-The dnet network is used as transport layer.
-_A new transport layer will come in the future._
-
+if you want to see the Technical tutorials with pictures you can view the document on this branch  "QtXdagWallet/doc/cn/Qt5.7+VS2015‘À––Xdag.docx"
 
 Maintainers:
 ---------------
-
-Evgeniy ( gKNRtSL1pUaTpzMuPMznKw49ILtP6qX3 )
-true ( rvKaJSbP9DE6sg6XetYtSpaK+2aDbUq8 )
+Bill (Xdag Address: ABnr08l/kpFfvKLDBzv0+smQhbJo1RVy )
