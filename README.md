@@ -5,40 +5,43 @@ The Dagger (XDAG) Qt Wallet
 
 - Purpose
 
-The purpose of the project is making a light Xdag Wallet that 
-can cross platform(such as Linux,Windows,MacOs) easily£¬and in the
-near future this project will be ported on Arm Architecture so that
-mobile devices can use the Xdag Wallet¡£ 
-
-for windows user,this project 
+	The purpose of the project is making a light Xdag Wallet that 
+	can cross platform(such as Linux,Windows,MacOs) easily£¬and in the
+	near future this project will be ported on Arm Architecture so that
+	mobile devices can use the Xdag Wallet¡£ 
 
 Install and run (windows):
 -----------------------
 
 - Install dependencies:
-	visual studio 2015(2017):
+	
+	- visual studio 2015(2017):
+		
 		https://www.visualstudio.com/downloads/
 		
 		Notice:
 		Remember choose the Visual C++ Componet
 	
-	Windows SDK( windows software development kit ):
+	- Windows SDK( windows software development kit ):
+		
 		https://docs.microsoft.com/zh-cn/windows-hardware/drivers/debugger/debugger-download-tools
 		
 		Notice:
 		When you install the win debuger,you must choose the option "Debugging Tools for windows"£¬if your are a starter of 
 		Windows SDK£¬all options are suggested to choose¡£
 	
-	Qt5.7.1:
+	- Qt5.7.1:
 		http://iso.mirrors.ustc.edu.cn/qtproject/archive/qt/5.7/5.7.1/qt-opensource-windows-x86-msvc2015_64-5.7.1.exe
 		
 		Notice:
 		Qt5.7.1 has been included Qt Creator 4.2.0
 
 - Clone from the git repository:
-        $ git clone https://github.com/amazingMan2017/QtXdagWallet.git
+        
+		$ git clone https://github.com/amazingMan2017/QtXdagWallet.git
 
 - Open Qt Creator 4.2.0 and Configure the project
+		
 		(1)Files --> Open Files Or Project
 			Open the Qt project file in the relative path "qt\QtXdagWallet\QtXdagWallet.pro"
 
