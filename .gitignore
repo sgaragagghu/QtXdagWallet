@@ -6,15 +6,21 @@
 *.lo
 *.o
 *.obj
+*.pdb
+*.sdf
+*.idb
+*.ilk
+*.dll
 
 # Precompiled Headers
 *.gch
 *.pch
+moc_*.cpp
+qrc_*.cpp
 
 # Compiled Dynamic libraries
 *.so
 *.dylib
-*.dll
 
 # Fortran module files
 *.mod
@@ -30,3 +36,16 @@
 *.exe
 *.out
 *.app
+
+#logs
+*.log
+*.tlog
+
+#project files
+*.vcxproj.user
+*.pro.user
+
+#genertated makefile
+Makefile.Debug
+Makefile.Release
+
