@@ -31,6 +31,7 @@ Install and run (windows):
 		Windows SDK£¨all options are suggested to choose°£
 	
 	- Qt5.7.1:
+		
 		http://iso.mirrors.ustc.edu.cn/qtproject/archive/qt/5.7/5.7.1/qt-opensource-windows-x86-msvc2015_64-5.7.1.exe
 		
 		Notice:
@@ -71,8 +72,15 @@ Install and run (windows):
 
 		(5) Right Click the Project "QtXdagWallet " and Run
 
-if you want to see the Technical tutorials with pictures you can view the document on this branch  "QtXdagWallet/doc/cn/Qt5.7+VS2015‘À––Xdag.docx"
+- Detailed Technical tutorials With Pictures
+	
+	If you want to see the Technical tutorials with pictures you can view the document on this branch  "QtXdagWallet/doc/cn/Run Xdag With Qt5.7.1+VS2015.docx"
 
+- Contact information ( amazingbill2017@gmail.com )
+	
+	If you have any question and suggest on this project you can send email to my GMail°£
+	
+		
 Maintainers:
 ---------------
 Bill (Xdag Address: ABnr08l/kpFfvKLDBzv0+smQhbJo1RVy )
