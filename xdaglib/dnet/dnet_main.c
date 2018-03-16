@@ -42,7 +42,6 @@ int dnet_init() {
 
 	if ((err = dnet_crypt_init(DNET_VERSION))) {
 		sleep(3);
-		printf("Password incorrect.\n");
 		return err;
 	}
 

@@ -347,16 +347,21 @@ int dnet_crypt_init(const char *version) {
 
 		memset(buf, 0, 256);
 
-		//要求输入密码
-			(*g_input_password)("Set password", pwd, 256);
-			dfslib_utf8_string(&str, pwd, strlen(pwd));
-			(*g_input_password)("Re-type password", pwd1, 256);
-			dfslib_utf8_string(&str1, pwd1, strlen(pwd1));
-			if (str.len != str1.len || memcmp(str.utf8, str1.utf8, str.len)) {
-				printf("Passwords differ.\n"); return 4;
-			}
-			if (str.len) set_user_crypt(&str);
-			(*g_input_password)("Type random keys", buf, 256);
+        //要求输入密码
+        (*g_input_password)("Set password", pwd, 256);
+        dfslib_utf8_string(&str, pwd, strlen(pwd));
+        (*g_input_password)("Re-type password", pwd1, 256);
+        dfslib_utf8_string(&str1, pwd1, strlen(pwd1));
+        if (str.len != str1.len || memcmp(str.utf8, str1.utf8, str.len)) {
+            //invoke ui callback to display error
+            st_xdag_event event;
+            event.procedure_type = en_procedure_init_wallet;
+            event.event_type = en_event_pwd_not_same;
+            g_app_callback_func(g_callback_object,&event);
+            return 4;
+        }
+        if (str.len) set_user_crypt(&str);
+        (*g_input_password)("Type random keys", buf, 256);
 
         dfslib_random_fill(keys->pub.key, DNET_KEYLEN * sizeof(dfsrsa_t), 0, dfslib_utf8_string(&str, buf, strlen(buf)));
 		printf("Generating host keys... \n");
@@ -399,8 +404,16 @@ int dnet_crypt_init(const char *version) {
 	if (version) {
 		dnet_set_host_version(host, version + 1);
 	}
-		
-    return -dnet_test_keys();
+
+    int res = -dnet_test_keys();
+    if(res){
+        st_xdag_event event;
+        event.procedure_type = en_procedure_init_wallet;
+        event.event_type = en_event_pwd_error;
+        g_app_callback_func(g_callback_object,&event);
+    }
+
+    return res;
 }
 
 static void dnet_session_init_crypt(struct dfslib_crypt *crypt, uint32_t sector[SECTOR_SIZE / 4]) {

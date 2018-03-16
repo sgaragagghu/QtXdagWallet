@@ -354,6 +354,13 @@ void QtWalletMain::InitWalletUpdateUI(UpdateUiInfo info){
             m_pDLPwdType->show();
         break;
 
+        case en_event_pwd_error:
+        {
+            QMessageBox message(QMessageBox::NoIcon, "Error", "PassWord Error");
+            message.exec();
+        }
+        break;
+
         //update ui info
         case en_event_update_state:
             m_pLEAccount->clear();

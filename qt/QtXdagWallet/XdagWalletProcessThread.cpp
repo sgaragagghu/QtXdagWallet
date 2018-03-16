@@ -145,7 +145,12 @@ void XdagWalletProcessThread::run()
     xdag_wrapper_log_init();
     xdag_wrapper_init((void*)this,XdagWalletProcessCallback);
     xdag_global_init();
-    xdag_main(address);
+
+    if(xdag_main(address) != 0){
+        qDebug() << " error while wallet initialized  ";
+        xdag_wrapper_uninit();
+        this->requestInterruption();
+    }
 
     /* start the main loop of the xdag proccess thread */
     while(!isInterruptionRequested()){
@@ -296,8 +301,6 @@ st_xdag_app_msg* XdagWalletProcessThread::XdagWalletProcessCallback(const void *
         return msg;
 
         case en_event_pwd_error:
-            qDebug() << " event password error";
-            qDebug() << " event type password not same";
             mutex->lock();
             qDebug() << " en_event_pwd_error lock " << QThread::currentThreadId();
             updateUiInfo.event_type = event->event_type;
