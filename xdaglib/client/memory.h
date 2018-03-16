@@ -19,6 +19,9 @@ extern void xdag_mem_finish(void);
 
 extern int xdag_free_all(void);
 
+extern char** xdagCreateStringArray(int count, int stringLen);
+extern void xdagFreeStringArray(char** stringArray, int count);
+
 #ifdef __cplusplus
 }
 #endif

@@ -205,11 +205,31 @@ st_xdag_app_msg* XdagWalletProcessThread::XdagWalletProcessCallback(const void *
     UpdateUiInfo updateUiInfo;
     switch(event->event_type){
 
+        case en_event_type_pwd:
+            qDebug() << " event type need type password current threadid " << QThread::currentThreadId();
+
+            //wait ui type password
+            mutex->lock();
+            qDebug() << " en_event_type_pwd lock " << QThread::currentThreadId();
+            updateUiInfo.event_type = event->event_type;
+            updateUiInfo.procedure_type = event->procedure_type;
+            thread->emitUISignal(updateUiInfo);
+            thread->waitPasswdTyped();
+
+            msg = xdag_malloc_app_msg();
+            if(msg){
+                msg->xdag_pwd = strdup(thread->getMsgMap()->find("type-passwd")->toStdString().c_str());
+                thread->getMsgMap()->clear();
+            }
+            qDebug() << " en_event_type_pwd unlock " << QThread::currentThreadId();
+            mutex->unlock();
+            return msg;
         case en_event_set_pwd:
             qDebug() << " event type need set password current threadid " << QThread::currentThreadId();
 
             //wait ui set password
             mutex->lock();
+            qDebug() << " en_event_set_pwd lock " << QThread::currentThreadId();
             updateUiInfo.event_type = event->event_type;
             updateUiInfo.procedure_type = event->procedure_type;
             thread->emitUISignal(updateUiInfo);
@@ -220,6 +240,7 @@ st_xdag_app_msg* XdagWalletProcessThread::XdagWalletProcessCallback(const void *
                 msg->xdag_pwd = strdup(thread->getMsgMap()->find("set-passwd")->toStdString().c_str());
                 thread->getMsgMap()->clear();
             }
+            qDebug() << " en_event_set_pwd un lock " << QThread::currentThreadId();
             mutex->unlock();
         return msg;
 
@@ -228,6 +249,7 @@ st_xdag_app_msg* XdagWalletProcessThread::XdagWalletProcessCallback(const void *
 
             //wait ui retype password
             mutex->lock();
+            qDebug() << " en_event_retype_pwd lock " << QThread::currentThreadId();
             updateUiInfo.event_type = event->event_type;
             updateUiInfo.procedure_type = event->procedure_type;
             thread->emitUISignal(updateUiInfo);
@@ -238,6 +260,7 @@ st_xdag_app_msg* XdagWalletProcessThread::XdagWalletProcessCallback(const void *
                 msg->xdag_retype_pwd = strdup(thread->getMsgMap()->find("retype-passwd")->toStdString().c_str());
                 thread->getMsgMap()->clear();
             }
+            qDebug() << " en_event_retype_pwd un lock " << QThread::currentThreadId();
             mutex->unlock();
 
         return msg;
@@ -247,6 +270,7 @@ st_xdag_app_msg* XdagWalletProcessThread::XdagWalletProcessCallback(const void *
 
             //wait ui set random keys
             mutex->lock();
+            qDebug() << " en_event_set_rdm lock " << QThread::currentThreadId();
             updateUiInfo.event_type = event->event_type;
             updateUiInfo.procedure_type = event->procedure_type;
             thread->emitUISignal(updateUiInfo);
@@ -256,16 +280,18 @@ st_xdag_app_msg* XdagWalletProcessThread::XdagWalletProcessCallback(const void *
                 msg->xdag_rdm = strdup(thread->getMsgMap()->find("type-rdm")->toStdString().c_str());
                 thread->getMsgMap()->clear();
             }
-
+            qDebug() << " en_event_set_rdm un lock " << QThread::currentThreadId();
             mutex->unlock();
         return msg;
 
         case en_event_pwd_not_same:
             qDebug() << " event type password not same";
             mutex->lock();
+            qDebug() << " en_event_pwd_not_same lock " << QThread::currentThreadId();
             updateUiInfo.event_type = event->event_type;
             updateUiInfo.procedure_type = event->procedure_type;
             thread->emitUISignal(updateUiInfo);
+            qDebug() << " en_event_pwd_not_same un lock " << QThread::currentThreadId();
             mutex->unlock();
         return msg;
 
@@ -273,33 +299,39 @@ st_xdag_app_msg* XdagWalletProcessThread::XdagWalletProcessCallback(const void *
             qDebug() << " event password error";
             qDebug() << " event type password not same";
             mutex->lock();
+            qDebug() << " en_event_pwd_error lock " << QThread::currentThreadId();
             updateUiInfo.event_type = event->event_type;
             updateUiInfo.procedure_type = event->procedure_type;
             thread->emitUISignal(updateUiInfo);
+            qDebug() << " en_event_pwd_error un lock " << QThread::currentThreadId();
             mutex->unlock();
         return msg;
 
         case en_event_update_state:
             //qDebug() << " update ui address: " << event->address <<" balance: " << event->balance << " state " << event->state;
 
-            mutex->lock();
+            //mutex->lock();
+            //qDebug() << " en_event_update_state lock " << QThread::currentThreadId();
             updateUiInfo.event_type = event->event_type;
             updateUiInfo.procedure_type = event->procedure_type;
             updateUiInfo.address = QString(event->address);
             updateUiInfo.balance = QString(event->balance);
             updateUiInfo.state = QString(event->state);
             thread->emitUISignal(updateUiInfo);
-            mutex->unlock();
-        //update ui need nothing to return;
+            //qDebug() << " en_event_update_state unlock " << QThread::currentThreadId();
+            //mutex->unlock();
+            //update ui need nothing to return;
         return NULL;
 
         case en_event_open_dnetfile_error:
             qDebug() << " open dnet file error " << event->error_msg;
 
             mutex->lock();
+            qDebug() << " en_event_open_dnetfile_error lock " << QThread::currentThreadId();
             updateUiInfo.event_type = event->event_type;
             updateUiInfo.procedure_type = event->procedure_type;
             thread->emitUISignal(updateUiInfo);
+            qDebug() << " en_event_open_dnetfile_error un lock " << QThread::currentThreadId();
             mutex->unlock();
         return NULL;
 
@@ -307,9 +339,11 @@ st_xdag_app_msg* XdagWalletProcessThread::XdagWalletProcessCallback(const void *
             qDebug() << " open dnet file error " << event->error_msg;
 
             mutex->lock();
+            qDebug() << " en_event_open_dnetfile_error lock " << QThread::currentThreadId();
             updateUiInfo.event_type = event->event_type;
             updateUiInfo.procedure_type = event->procedure_type;
             thread->emitUISignal(updateUiInfo);
+            qDebug() << " en_event_open_dnetfile_error un lock " << QThread::currentThreadId();
             mutex->unlock();
         return NULL;
 
@@ -317,9 +351,11 @@ st_xdag_app_msg* XdagWalletProcessThread::XdagWalletProcessCallback(const void *
             qDebug() << " open dnet file error " << event->error_msg;
 
             mutex->lock();
+            qDebug() << " en_event_load_storage_error lock " << QThread::currentThreadId();
             updateUiInfo.event_type = event->event_type;
             updateUiInfo.procedure_type = event->procedure_type;
             thread->emitUISignal(updateUiInfo);
+            qDebug() << " en_event_load_storage_error un lock " << QThread::currentThreadId();
             mutex->unlock();
         return NULL;
 

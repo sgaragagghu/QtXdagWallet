@@ -30,7 +30,7 @@ LIBS += -L$$PWD\win64_dependency\lib -lWS2_32
 LIBS += -L$$PWD\win64_dependency\lib -llegacy_stdio_definitions
 
 #QMAKE_CFLAGS += -DSHA256_USE_OPENSSL_TXFM -DSHA256_OPENSSL_MBLOCK -DHAVE_STRUCT_TIMESPEC -D_TIMESPEC_DEFINED -DDFSTOOLS -DCHEATCOIN -DNDEBUG -Wall
-QMAKE_CFLAGS +=-DHAVE_STRUCT_TIMESPEC -D_TIMESPEC_DEFINED -DDFSTOOLS -DCHEATCOIN -DNDEBUG -D_CRT_SECURE_NO_WARNINGS -Wall
+QMAKE_CFLAGS += -DHAVE_STRUCT_TIMESPEC -D_TIMESPEC_DEFINED -DDFSTOOLS -DCHEATCOIN -DNDEBUG -D_CRT_SECURE_NO_WARNINGS -Wall
 
 #QMAKE_CXXFLAGS += -DSHA256_USE_OPENSSL_TXFM -DSHA256_OPENSSL_MBLOCK -DHAVE_STRUCT_TIMESPEC -D_TIMESPEC_DEFINED -DDFSTOOLS -DCHEATCOIN -DNDEBUG -Wall
 QMAKE_CXXFLAGS += -DHAVE_STRUCT_TIMESPEC -D_TIMESPEC_DEFINED -DDFSTOOLS -DCHEATCOIN -DNDEBUG -D_CRT_SECURE_NO_WARNINGS -Wall
@@ -55,7 +55,8 @@ SOURCES +=\
     WalletMain.cpp \
     PwdDialog.cpp \
     WalletInitWidget.cpp \
-    PwdLineEdit.cpp
+    PwdLineEdit.cpp \
+    XdagMutex.cpp
 
 HEADERS  += \
     XdagWalletProcessThread.h \
@@ -65,7 +66,8 @@ HEADERS  += \
     UiNotifyMessage.h \
     UpdateUiInfo.h \
     XdagCommonDefine.h \
-    PwdLineEdit.h
+    PwdLineEdit.h \
+    XdagMutex.h
 
 FORMS    += qtwalletmain.ui \
     walletinitwidget.ui \

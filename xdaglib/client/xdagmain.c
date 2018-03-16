@@ -285,6 +285,7 @@ static inline report_ui_xfer_event(en_xdag_event_type event_type,const char* err
 
 int xdag_xfer_coin(const char* amount,const char* address){
 
+    uint32_t pwd[4];
     struct xfer_callback_data xfer;
 
     memset(&xfer, 0, sizeof(xfer));
@@ -307,7 +308,7 @@ int xdag_xfer_coin(const char* amount,const char* address){
 
     /* ask user type in password */
 #if 0
-    if (out == stdout ? xdag_user_crypt_action(0, 0, 0, 3) : (ispwd ? xdag_user_crypt_action(pwd, 0, 4, 5) : 1)) {
+    if (xdag_user_crypt_action(0, 0, 0, 3)) {
         sleep(3);
         report_ui_xfer_event(en_event_pwd_error,"password error");
         return 1;

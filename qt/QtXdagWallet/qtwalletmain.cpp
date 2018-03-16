@@ -244,7 +244,7 @@ void QtWalletMain::onButtonXferClicked()
     UiNotifyMessage msg;
     msg.msgType = UiNotifyMessage::EN_DO_XFER_XDAG;
     msg.account = strdup(m_pLEAccount->text().toStdString().c_str());
-    msg.amount = strdup(m_pLEAccount->text().toStdString().c_str());
+    msg.amount = strdup(m_pLESendAmount->text().toStdString().c_str());
     msg.msgFromThreadId = QThread::currentThreadId();
 
     g_MsgQueue.push_back(msg);
@@ -332,7 +332,7 @@ void QtWalletMain::InitWalletUpdateUI(UpdateUiInfo info){
 
         case en_event_type_pwd:
             m_pDLPwdType = new PwdDialog(0,DLG_TYPE_PWD);
-            connect(m_pDLPwdType,SIGNAL(sendPwd(QString)),this,SLOT(onPwdTyped(QString)));
+            connect(m_pDLPwdType,SIGNAL(sendTypePwd(QString)),this,SLOT(onPwdTyped(QString)));
             m_pDLPwdType->show();
         break;
 
