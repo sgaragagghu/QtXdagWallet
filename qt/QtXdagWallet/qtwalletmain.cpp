@@ -243,7 +243,7 @@ void QtWalletMain::onButtonXferClicked()
 
     UiNotifyMessage msg;
     msg.msgType = UiNotifyMessage::EN_DO_XFER_XDAG;
-    msg.account = strdup(m_pLEAccount->text().toStdString().c_str());
+    msg.account = strdup(m_pLERecvAddress->text().toStdString().c_str());
     msg.amount = strdup(m_pLESendAmount->text().toStdString().c_str());
     msg.msgFromThreadId = QThread::currentThreadId();
 
