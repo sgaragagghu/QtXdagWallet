@@ -195,28 +195,29 @@ void QtWalletMain::translateUI(XdagCommonDefine::EN_XDAG_UI_LANG lang)
 }
 
 void QtWalletMain::initWorkThread(){
-    m_pXdagWalletProcessThread = new XdagWalletProcessThread(this);
+    m_pXdagThread = new XdagWalletProcessThread(this);
 
-    m_pXdagWalletProcessThread->setMutex(&g_Mutex);
-    m_pXdagWalletProcessThread->setCondPwdTyped(&g_condPwdTyped);
-    m_pXdagWalletProcessThread->setCondPwdSeted(&g_condPwdSeted);
-    m_pXdagWalletProcessThread->setCondPwdReTyped(&g_condPwdReTyped);
-    m_pXdagWalletProcessThread->setCondRdmTyped(&g_condRdmTyped);
-    m_pXdagWalletProcessThread->setCondUiNotified(&g_condUiNotified);
+    m_pXdagThread->setMutex(&g_Mutex);
+    m_pXdagThread->setCondPwdTyped(&g_condPwdTyped);
+    m_pXdagThread->setCondPwdSeted(&g_condPwdSeted);
+    m_pXdagThread->setCondPwdReTyped(&g_condPwdReTyped);
+    m_pXdagThread->setCondRdmTyped(&g_condRdmTyped);
+    m_pXdagThread->setCondUiNotified(&g_condUiNotified);
 
-    m_pXdagWalletProcessThread->setMsgMap(&g_MsgMap);
-    m_pXdagWalletProcessThread->setMsgQueue(&g_MsgQueue);
+    m_pXdagThread->setMsgMap(&g_MsgMap);
+    m_pXdagThread->setMsgQueue(&g_MsgQueue);
 
 }
 
 void QtWalletMain::initSignal()
 {
-    //connect wallet init signal and slot
-    connect(m_pPBConnect,&QPushButton::clicked,this,&QtWalletMain::onButtonGoClicked);
+    //connect button click signal and slot
+    connect(m_pPBConnect,&QPushButton::clicked,this,&QtWalletMain::onBtnConnectClicked);
     connect(m_pPBXfer,&QPushButton::clicked,this,&QtWalletMain::onButtonXferClicked);
 
-    //connect wallet init thread signal and ui slot
-    connect(m_pXdagWalletProcessThread,&XdagWalletProcessThread::XdagWalletProcessSignal,this,&QtWalletMain::InitWalletUpdateUI);
+    //connect xdag and ui slot
+    connect(m_pXdagThread,&XdagWalletProcessThread::updateUI,this,&QtWalletMain::onXdagUpdateUI);
+    connect(m_pXdagThread,&XdagWalletProcessThread::stateChange,this,&QtWalletMain::onXdagStateChange);
 
     //change language
     connect(m_pQMLanguage,SIGNAL(triggered(QAction *)),this,SLOT(onChangeLanguage(QAction *)));
@@ -225,20 +226,21 @@ void QtWalletMain::initSignal()
     qRegisterMetaType<UiNotifyMessage>();
 }
 
-void QtWalletMain::onButtonGoClicked()
+void QtWalletMain::onBtnConnectClicked()
 {
-    m_pXdagWalletProcessThread->setPoolAddr(m_pLEPool->text().toStdString().c_str());
-    //init wallet use wallet init thread
-    if(!m_pXdagWalletProcessThread->isRunning()){
-        m_pXdagWalletProcessThread->start();
+    m_pXdagThread->setPoolAddr(m_pLEPool->text().toStdString().c_str());
+    //start xdag process thread
+    if(m_pXdagThread->isStopped()){
+        m_pPBConnect->setDisabled(false);
+        m_pXdagThread->start();
     }
 }
 
 void QtWalletMain::onButtonXferClicked()
 {
     //do xfer coin notify user connect the pool first
-    if(!m_pXdagWalletProcessThread->isRunning()){
-        m_pXdagWalletProcessThread->start();
+    if(!m_pXdagThread->isRunning()){
+        m_pXdagThread->start();
     }
 
     UiNotifyMessage msg;
@@ -286,7 +288,7 @@ void QtWalletMain::onPwdTyped(QString pwd)
         m_pDLPwdType->closeDialog();
         m_pDLPwdType = NULL;
     }
-    m_pXdagWalletProcessThread->wakePasswdTyped();
+    m_pXdagThread->wakePasswdTyped();
 }
 
 void QtWalletMain::onPwdSeted(QString pwd)
@@ -298,7 +300,7 @@ void QtWalletMain::onPwdSeted(QString pwd)
         m_pDLPwdType->closeDialog();
         m_pDLPwdType = NULL;
     }
-    m_pXdagWalletProcessThread->wakePasswdSeted();
+    m_pXdagThread->wakePasswdSeted();
 }
 
 void QtWalletMain::onPwdReTyped(QString pwd)
@@ -310,7 +312,7 @@ void QtWalletMain::onPwdReTyped(QString pwd)
         m_pDLPwdType->closeDialog();
         m_pDLPwdType = NULL;
     }
-    m_pXdagWalletProcessThread->wakePasswdRetyped();
+    m_pXdagThread->wakePasswdRetyped();
 }
 
 void QtWalletMain::onRdmTyped(QString pwd)
@@ -322,11 +324,13 @@ void QtWalletMain::onRdmTyped(QString pwd)
         m_pDLPwdType->closeDialog();
         m_pDLPwdType = NULL;
     }
-    m_pXdagWalletProcessThread->wakeRdmTyped();
+    m_pXdagThread->wakeRdmTyped();
 
 }
 
-void QtWalletMain::InitWalletUpdateUI(UpdateUiInfo info){
+
+
+void QtWalletMain::onXdagUpdateUI(UpdateUiInfo info){
 
     switch(info.event_type){
 
@@ -369,6 +373,15 @@ void QtWalletMain::InitWalletUpdateUI(UpdateUiInfo info){
             m_pLEAccount->setText(info.address);
             m_pLEBalance->setText(info.balance);
             ui->statusBar->showMessage(info.state);
+        break;
+    }
+}
+
+void QtWalletMain::onXdagStateChange(XDAG_PROCESS_STATE state)
+{
+    switch(state){
+        case XDAG_PROCESS_STOP:
+            m_pPBConnect->setDisabled(true);
         break;
     }
 }

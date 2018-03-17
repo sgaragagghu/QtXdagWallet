@@ -67,7 +67,7 @@ private:
     QAction *m_pQAKorean;
 
     //work threads
-    XdagWalletProcessThread *m_pXdagWalletProcessThread;
+    XdagWalletProcessThread *m_pXdagThread;
 
     //password input dialog
     PwdDialog *m_pDLPwdType;
@@ -79,9 +79,10 @@ private:
 
     XdagCommonDefine::EN_XDAG_UI_LANG mLanguage;
 
-    void InitWalletUpdateUI(UpdateUiInfo info);
+    void onXdagUpdateUI(UpdateUiInfo info);
+    void onXdagStateChange(XDAG_PROCESS_STATE state);
 private slots:
-    void onButtonGoClicked();
+    void onBtnConnectClicked();
     void onButtonXferClicked();
     void onChangeLanguage(QAction *);
     void onPwdTyped(QString pwd);

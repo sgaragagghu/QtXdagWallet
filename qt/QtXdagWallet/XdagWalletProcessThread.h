@@ -14,6 +14,11 @@
 
 static QObject *gCallBackObject;
 
+typedef enum tag_XDAG_PROCESS_STATE{
+    XDAG_PROCESS_START,
+    XDAG_PROCESS_STOP,
+}XDAG_PROCESS_STATE;
+
 class XdagWalletProcessThread : public QThread
 {
     Q_OBJECT
@@ -21,6 +26,10 @@ class XdagWalletProcessThread : public QThread
 public:
     explicit XdagWalletProcessThread(QObject *parent);
     ~XdagWalletProcessThread();
+
+    void Stop();
+    void Start();
+    bool isStopped();
 
     void setPoolAddr(const char* poolAddr);
     const char* getPoolAddr(void);
@@ -54,9 +63,6 @@ public:
     //process ui notify message
     void processUiNotifyMessage(UiNotifyMessage &msg);
 
-    //stop the thread
-    void stop();
-
     void waitPasswdTyped();
     void wakePasswdTyped();
     void waitPasswdSeted();
@@ -69,9 +75,12 @@ public:
 protected:
     virtual void run();
 
-signals:
-    //emit wallet process signal
-    void XdagWalletProcessSignal(UpdateUiInfo info);
+Q_SIGNALS:
+    //emit wallet update ui signal
+    void updateUI(UpdateUiInfo info);
+
+    //emit process state change signal
+    void stateChange(XDAG_PROCESS_STATE state);
 
 private:
     //Mutex Lock
@@ -94,7 +103,7 @@ private:
     QQueue<UiNotifyMessage> *m_pMsgQueue;
 
     //flag is need stop
-    bool m_bNeedStopped;
+    bool m_bStopped;
 
     //pool addr
     QString mPoolAddr;

@@ -2,16 +2,37 @@
 
 
 XdagWalletProcessThread::XdagWalletProcessThread(QObject *parent = 0)
-    :m_bNeedStopped(false)
+    :m_bStopped(true)
 {
     qDebug() << "xdag process thread constructor: " << QThread::currentThreadId();
 }
 
 XdagWalletProcessThread::~XdagWalletProcessThread()
 {
-    stop();
+    Stop();
     quit();
     wait();
+}
+
+
+void XdagWalletProcessThread::Start()
+{
+    //QMutexLocker locker(m_pMutex);
+    m_bStopped = false;
+    this->start();
+}
+
+void XdagWalletProcessThread::Stop()
+{
+    QMutexLocker locker(m_pMutex);
+    this->quit();
+    m_bStopped = true;
+}
+
+
+bool XdagWalletProcessThread::isStopped()
+{
+    return m_bStopped;
 }
 
 void XdagWalletProcessThread::setPoolAddr(const char* poolAddr)
@@ -86,13 +107,6 @@ void XdagWalletProcessThread::setMsgQueue(QQueue<UiNotifyMessage> *msgQueue)
     this->m_pMsgQueue = msgQueue;
 }
 
-void XdagWalletProcessThread::stop()
-{
-    qDebug() << "xdag process stop thread : " << QThread::currentThreadId();
-    QMutexLocker locker(m_pMutex);
-    m_bNeedStopped = true;
-}
-
 void XdagWalletProcessThread::waitPasswdTyped()
 {
     qDebug() << " qcondiction wait password typed current thread id " << QThread::currentThreadId();
@@ -138,18 +152,24 @@ void XdagWalletProcessThread::wakeRdmTyped()
 void XdagWalletProcessThread::run()
 {
     qDebug() << "xdag process thread run thread id: " << QThread::currentThreadId();
-    m_bNeedStopped = false;
+    m_bStopped = false;
 
     /* dump the pool address and keep it always in memory */
     char* address = strdup(mPoolAddr.toStdString().c_str());
-    xdag_wrapper_log_init();
+
+    if(xdag_wrapper_log_init() < 0){
+        qDebug() << " error while wallet log initialized  ";
+        this->Stop();
+        return;
+    }
+
     xdag_wrapper_init((void*)this,XdagWalletProcessCallback);
     xdag_global_init();
 
     if(xdag_main(address) != 0){
         qDebug() << " error while wallet initialized  ";
-        xdag_wrapper_uninit();
-        this->requestInterruption();
+        this->Stop();
+        return;
     }
 
     /* start the main loop of the xdag proccess thread */
@@ -167,7 +187,8 @@ void XdagWalletProcessThread::run()
 
             /*uninit xdag wallet*/
             xdag_wrapper_uninit();
-            break;
+            this->Stop();
+            return;
         }
         /* pop message from the queue and process the message */
         UiNotifyMessage msg = m_pMsgQueue->first();
@@ -186,7 +207,7 @@ void XdagWalletProcessThread::run()
 
 void XdagWalletProcessThread::emitUISignal(UpdateUiInfo info)
 {
-    emit XdagWalletProcessSignal(info);
+    emit updateUI(info);
 }
 
 
