@@ -184,8 +184,6 @@ void XdagWalletProcessThread::run()
         /* read the ui notify message and process the message*/
         if(isInterruptionRequested()){
             qDebug() << " wallet process thread interrupted by ui " << QThread::currentThreadId();
-
-            /*uninit xdag wallet*/
             xdag_wrapper_uninit();
             this->Stop();
             return;

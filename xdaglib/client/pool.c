@@ -155,7 +155,7 @@ static int send_to_pool(struct xdag_field *fld, int nfld)
 	pthread_mutex_unlock(&g_pool_mutex);
 	
 	if (nfld == XDAG_BLOCK_FIELDS) {
-		xdag_info("Sent  : %016llx%016llx%016llx%016llx t=%llx res=%d",
+                xdag_app_debug("Sent  : %016llx%016llx%016llx%016llx t=%llx res=%d",
 					   h[3], h[2], h[1], h[0], fld[0].time, 0);
 	}
 
