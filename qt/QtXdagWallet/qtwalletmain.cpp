@@ -240,7 +240,7 @@ void QtWalletMain::onButtonXferClicked()
 {
     //do xfer coin notify user connect the pool first
     if(!m_pXdagThread->isRunning()){
-        m_pXdagThread->start();
+        m_pXdagThread->Start();
     }
 
     UiNotifyMessage msg;
