@@ -85,7 +85,7 @@ extern void* g_callback_object;
 extern st_xdag_app_msg* xdag_malloc_app_msg();
 extern void xdag_free_app_msg(st_xdag_app_msg* msg);
 
-extern void xdag_wrapper_log_init();
+extern int xdag_wrapper_log_init();
 
 extern const char* xdag_get_version();
 

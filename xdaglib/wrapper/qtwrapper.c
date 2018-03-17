@@ -60,8 +60,8 @@ void xdag_free_app_msg(st_xdag_app_msg* msg){
     }
 }
 
-void xdag_wrapper_log_init(){
-    xdag_app_log_init();
+int xdag_wrapper_log_init(){
+    return xdag_app_log_init();
 }
 
 const char* xdag_get_version(){
