@@ -2,6 +2,7 @@
 #define XDAGMUTEX_H
 
 #include <QMutex>
+#include <QString>
 
 class XdagMutex : public QMutex
 {
