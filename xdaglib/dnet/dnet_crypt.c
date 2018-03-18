@@ -298,13 +298,13 @@ int dnet_crypt_init(const char *version) {
     dfslib_random_init();
     if (crc_init()) {
         printf(" crc init error \n");
+        crc_uninit();
         return 2;
     }
 
     f = fopen(KEYFILE, "rb");
     if (f) {
         if (fread(keys, sizeof(struct dnet_keys), 1, f) != 1) {
-
                 fclose(f);
                 f = 0;
         }
@@ -340,6 +340,7 @@ int dnet_crypt_init(const char *version) {
             event.event_type = en_event_open_dnetfile_error;
             strcpy(event.error_msg,strerror(_errno()));
             g_app_callback_func(g_callback_object,&event);
+            crc_uninit();
             return 3;
         }
 
@@ -355,6 +356,7 @@ int dnet_crypt_init(const char *version) {
             event.procedure_type = en_procedure_init_wallet;
             event.event_type = en_event_pwd_not_same;
             g_app_callback_func(g_callback_object,&event);
+            crc_uninit();
             return 4;
         }
         if (str.len) set_user_crypt(&str);
@@ -377,6 +379,7 @@ int dnet_crypt_init(const char *version) {
 
         //保存私钥和公钥到文件
         if (fwrite(keys, sizeof(struct dnet_keys), 1, f) != 1) {
+                crc_uninit();
                 return 5;
         }
 
@@ -391,6 +394,7 @@ int dnet_crypt_init(const char *version) {
 
     //add trust hosts
     if (!(host = dnet_add_host(&g_dnet_keys->pub, 0, 127 << 24 | 1, 0, DNET_ROUTE_LOCAL))) {
+        crc_uninit();
         return 6;
     }
 

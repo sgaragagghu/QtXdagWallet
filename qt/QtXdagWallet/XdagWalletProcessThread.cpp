@@ -35,6 +35,16 @@ bool XdagWalletProcessThread::isStopped()
     return m_bStopped;
 }
 
+void XdagWalletProcessThread::moveStateTo(XDAG_PROCESS_STATE state)
+{
+    qDebug() << "xdag process move state from " << getProcessStateString(mProcessState)
+             <<" to " << getProcessStateString(state);
+
+    //emit ui to do something
+
+    //restrick user's operation
+}
+
 void XdagWalletProcessThread::setPoolAddr(const char* poolAddr)
 {
     this->mPoolAddr = QString(poolAddr);
@@ -397,6 +407,37 @@ st_xdag_app_msg* XdagWalletProcessThread::XdagWalletProcessCallback(const void *
     }
 
     return NULL;
+}
+
+QString XdagWalletProcessThread::getProcessStateString(XDAG_PROCESS_STATE state)
+{
+    switch(state){
+        case XDAG_PROCESS_START:
+        return "start";
+
+        case XDAG_PROCESS_CONNECTING:
+        return "connecting";
+
+        case XDAG_PROCESS_CONNECTED:
+        return "connected";
+
+        case XDAG_PROCESS_CONN_TIMEOUT:
+        return "connect time out";
+
+        case XDAG_PROCESS_BLOCK_TRANSFERING:
+        return "block transfering";
+
+        case XDAG_PROCESS_BLOCK_TRANSFERED:
+        return "block transfered";
+
+        case XDAG_PROCESS_STOP:
+        return "stop";
+
+        default:
+            return "unkown state";
+    }
+
+    return "unkown state";
 }
 
 void XdagWalletProcessThread::processUiNotifyMessage(UiNotifyMessage & msg)

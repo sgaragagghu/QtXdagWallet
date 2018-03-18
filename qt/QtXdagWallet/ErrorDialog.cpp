@@ -36,12 +36,16 @@ QString ErrorDialog::getTextFromDlgType(ERR_DLG_TYPE type)
     switch (type) {
         case DLG_PWD_ERR:
             return tr("password error");
+        case DLG_PWD_FORMAT_ERR:
+            return tr("password foramt error \n length 8-18 consist at leat 1 charactor 1 number");
+        case DLG_PWD_NOT_THE_SAME:
+            return tr("password not the same");
         case DLG_NOTHING_TO_TRANSFER:
             return tr("nothing transfer");
         case DLG_BALANCE_TOO_SMALL:
             return tr("balance too small");
         case DLG_INVALID_RECV_ADDRESS:
-            return tr("invalid recv address");
+            return tr("invalid receive address");
         default:
             return tr("unkown error");
     }
@@ -52,6 +56,8 @@ void ErrorDialog::onBtnClicked()
 {
     switch(this->mDlgType){
         case DLG_PWD_ERR:
+        case DLG_PWD_NOT_THE_SAME:
+        case DLG_PWD_FORMAT_ERR:
         case DLG_NOTHING_TO_TRANSFER:
         case DLG_BALANCE_TOO_SMALL:
         case DLG_INVALID_RECV_ADDRESS:

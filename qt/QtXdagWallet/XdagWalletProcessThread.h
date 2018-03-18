@@ -16,7 +16,12 @@ static QObject *gCallBackObject;
 
 typedef enum tag_XDAG_PROCESS_STATE{
     XDAG_PROCESS_START,
-    XDAG_PROCESS_STOP,
+    XDAG_PROCESS_CONNECTING,
+    XDAG_PROCESS_CONNECTED,
+    XDAG_PROCESS_CONN_TIMEOUT,
+    XDAG_PROCESS_BLOCK_TRANSFERING,
+    XDAG_PROCESS_BLOCK_TRANSFERED,
+    XDAG_PROCESS_STOP
 }XDAG_PROCESS_STATE;
 
 class XdagWalletProcessThread : public QThread
@@ -30,6 +35,9 @@ public:
     void Stop();
     void Start();
     bool isStopped();
+
+    //move transation state
+    void moveStateTo(XDAG_PROCESS_STATE state);
 
     void setPoolAddr(const char* poolAddr);
     const char* getPoolAddr(void);
@@ -59,6 +67,9 @@ public:
 
     //for xdag library call back
     static st_xdag_app_msg* XdagWalletProcessCallback(const void *call_back_object,st_xdag_event *event);
+
+    //get state string
+    static QString getProcessStateString(XDAG_PROCESS_STATE state);
 
     //process ui notify message
     void processUiNotifyMessage(UiNotifyMessage &msg);
@@ -107,6 +118,9 @@ private:
 
     //pool addr
     QString mPoolAddr;
+
+    //current state
+    XDAG_PROCESS_STATE mProcessState;
 };
 
 #endif // WALLETINITTHREAD_H

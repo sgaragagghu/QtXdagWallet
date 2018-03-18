@@ -364,6 +364,12 @@ void QtWalletMain::onXdagUpdateUI(UpdateUiInfo info){
             m_pErrDlg->show();
         }
         break;
+        case en_event_pwd_not_same:
+        {
+            m_pErrDlg = new ErrorDialog(0,DLG_PWD_NOT_THE_SAME);
+            m_pErrDlg->show();
+        }
+        break;
         case en_event_nothing_transfer:
         {
             m_pErrDlg = new ErrorDialog(0,DLG_NOTHING_TO_TRANSFER);

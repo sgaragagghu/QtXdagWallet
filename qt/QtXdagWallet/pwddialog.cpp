@@ -17,7 +17,7 @@ PwdDialog::PwdDialog(QWidget *parent, PWD_DLG_TYPE type) :
     m_pLable->setFixedSize(100,25);
     m_pLEPwd->setFixedSize(200,25);
     m_pPBOK->setFixedSize(60,25);
-    m_pLEPwd->setEchoMode(QLineEdit::Password);
+    //m_pLEPwd->setEchoMode(QLineEdit::Password);
     m_pLable->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     m_pHBLInputPwd = new QHBoxLayout;
     m_pHBLInputPwd->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
@@ -55,6 +55,14 @@ PwdDialog::PwdDialog(QWidget *parent, PWD_DLG_TYPE type) :
         break;
     }
 
+    //restrict user's password,length between 8-18，
+    //consist of charactor lower or upper case
+    if(type == DLG_SET_PWD || type == DLG_RETYPE_PWD){
+        mPwdRegExp.setPatternSyntax(QRegExp::RegExp);
+        mPwdRegExp.setCaseSensitivity(Qt::CaseSensitive);
+        mPwdRegExp.setPattern(QString("^(?![0-9]+$)(?![a-zA-Z]+$)[0-9A-Za-z]{8,16}$"));
+    }
+
     connect(m_pPBOK,SIGNAL(clicked(bool)),this,SLOT(onBtnOKClicked()));
 }
 
@@ -75,9 +83,19 @@ void PwdDialog::onBtnOKClicked()
 
     switch(mDlgType){
         case DLG_TYPE_PWD:
+            if(!mPwdRegExp.exactMatch(str)){
+                m_pErrDlg = new ErrorDialog(0,DLG_PWD_FORMAT_ERR);
+                m_pErrDlg->exec();
+                return;
+            }
             emit sendTypePwd(str);
         break;
         case DLG_SET_PWD:
+            if(!mPwdRegExp.exactMatch(str)){
+                m_pErrDlg = new ErrorDialog(0,DLG_PWD_FORMAT_ERR);
+                m_pErrDlg->exec();
+                return;
+            }
             emit sendSetPwd(str);
         break;
         case DLG_RETYPE_PWD:
