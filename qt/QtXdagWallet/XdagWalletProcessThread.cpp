@@ -197,9 +197,9 @@ void XdagWalletProcessThread::run()
                  << " transfer num " << msg.amount
                  << " message type " << msg.msgType;
 
-        processUiNotifyMessage(msg);
-
         m_pMutex->unlock();
+
+        processUiNotifyMessage(msg);
     }
 }
 
