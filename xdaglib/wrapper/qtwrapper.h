@@ -36,7 +36,7 @@ typedef enum {
 
     en_event_nothing_transfer       = 12,
     en_event_balance_too_small      = 13,
-    en_event_incorrect_address      = 14,
+    en_event_invalid_recv_address      = 14,
     en_event_xdag_transfered        = 15,
 
     // invoke print log function

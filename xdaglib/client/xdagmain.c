@@ -297,23 +297,21 @@ int xdag_xfer_coin(const char* amount,const char* address){
     }
 
     if (xfer.remains > xdag_get_balance(0)) {
-        report_ui_xfer_event(en_event_nothing_transfer,"balance too small");
+        report_ui_xfer_event(en_event_balance_too_small,"balance too small");
         return 1;
     }
 
     if (xdag_address2hash(address, xfer.fields[XFER_MAX_IN].hash)) {
-        report_ui_xfer_event(en_event_incorrect_address,"incorrect address");
+        report_ui_xfer_event(en_event_invalid_recv_address,"incorrect address");
         return 1;
     }
 
     /* ask user type in password */
-#if 0
     if (xdag_user_crypt_action(0, 0, 0, 3)) {
         sleep(3);
         report_ui_xfer_event(en_event_pwd_error,"password error");
         return 1;
     }
-#endif
 
     xdag_wallet_default_key(&xfer.keys[XFER_MAX_IN]);
     xfer.outsig = 1;

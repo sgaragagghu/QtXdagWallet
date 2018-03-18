@@ -228,7 +228,7 @@ st_xdag_app_msg* XdagWalletProcessThread::XdagWalletProcessCallback(const void *
     st_xdag_app_msg *msg = NULL;
     UpdateUiInfo updateUiInfo;
     switch(event->event_type){
-
+        //wait ui notify msg
         case en_event_type_pwd:
             qDebug() << " event type need type password current threadid " << QThread::currentThreadId();
 
@@ -329,22 +329,6 @@ st_xdag_app_msg* XdagWalletProcessThread::XdagWalletProcessCallback(const void *
             mutex->unlock();
         return msg;
 
-        case en_event_update_state:
-            //qDebug() << " update ui address: " << event->address <<" balance: " << event->balance << " state " << event->state;
-
-            //mutex->lock();
-            //qDebug() << " en_event_update_state lock " << QThread::currentThreadId();
-            updateUiInfo.event_type = event->event_type;
-            updateUiInfo.procedure_type = event->procedure_type;
-            updateUiInfo.address = QString(event->address);
-            updateUiInfo.balance = QString(event->balance);
-            updateUiInfo.state = QString(event->state);
-            thread->emitUISignal(updateUiInfo);
-            //qDebug() << " en_event_update_state unlock " << QThread::currentThreadId();
-            //mutex->unlock();
-            //update ui need nothing to return;
-        return NULL;
-
         case en_event_open_dnetfile_error:
             qDebug() << " open dnet file error " << event->error_msg;
 
@@ -379,6 +363,28 @@ st_xdag_app_msg* XdagWalletProcessThread::XdagWalletProcessCallback(const void *
             thread->emitUISignal(updateUiInfo);
             qDebug() << " en_event_load_storage_error un lock " << QThread::currentThreadId();
             mutex->unlock();
+        return NULL;
+
+        //transfer error notify
+        case en_event_balance_too_small:
+        case en_event_invalid_recv_address:
+        case en_event_nothing_transfer:
+            mutex->lock();
+            qDebug() << " error while transfer xdag lock" << QThread::currentThreadId();
+            updateUiInfo.event_type = event->event_type;
+            updateUiInfo.procedure_type = event->procedure_type;
+            thread->emitUISignal(updateUiInfo);
+            qDebug() << " error while transfer xdag unlock " << QThread::currentThreadId();
+            mutex->unlock();
+        return NULL;
+
+        case en_event_update_state:
+            updateUiInfo.event_type = event->event_type;
+            updateUiInfo.procedure_type = event->procedure_type;
+            updateUiInfo.address = QString(event->address);
+            updateUiInfo.balance = QString(event->balance);
+            updateUiInfo.state = QString(event->state);
+            thread->emitUISignal(updateUiInfo);
         return NULL;
 
         case en_event_xdag_log_print:

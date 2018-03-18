@@ -30,7 +30,7 @@ QQueue<UiNotifyMessage> g_MsgQueue;
 
 QtWalletMain::QtWalletMain(QWidget *parent) :
     QMainWindow(parent),
-    m_pDLPwdType(NULL),m_pDLPwdReType(NULL),m_pDLRdmType(NULL),
+    m_pDLPwdType(NULL),
     ui(new Ui::QtWalletMain)
 {
     initUI();
@@ -360,8 +360,26 @@ void QtWalletMain::onXdagUpdateUI(UpdateUiInfo info){
 
         case en_event_pwd_error:
         {
-            QMessageBox message(QMessageBox::NoIcon, "Error", "PassWord Error");
-            message.exec();
+            m_pErrDlg = new ErrorDialog(0,DLG_PWD_ERR);
+            m_pErrDlg->show();
+        }
+        break;
+        case en_event_nothing_transfer:
+        {
+            m_pErrDlg = new ErrorDialog(0,DLG_NOTHING_TO_TRANSFER);
+            m_pErrDlg->show();
+        }
+        break;
+        case en_event_balance_too_small:
+        {
+            m_pErrDlg = new ErrorDialog(0,DLG_BALANCE_TOO_SMALL);
+            m_pErrDlg->show();
+        }
+        break;
+        case en_event_invalid_recv_address:
+        {
+            m_pErrDlg = new ErrorDialog(0,DLG_INVALID_RECV_ADDRESS);
+            m_pErrDlg->show();
         }
         break;
 

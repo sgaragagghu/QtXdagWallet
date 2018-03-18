@@ -1,6 +1,7 @@
 #ifndef QTWALLETMAIN_H
 #define QTWALLETMAIN_H
 
+#include "ErrorDialog.h"
 #include "PwdDialog.h"
 #include "XdagWalletProcessThread.h"
 #include "xdagcommondefine.h"
@@ -71,8 +72,7 @@ private:
 
     //password input dialog
     PwdDialog *m_pDLPwdType;
-    PwdDialog *m_pDLPwdReType;
-    PwdDialog *m_pDLRdmType;
+    ErrorDialog *m_pErrDlg;
 
     //translator
     QTranslator *m_pTranslator;
