@@ -394,6 +394,9 @@ st_xdag_app_msg* XdagWalletProcessThread::XdagWalletProcessCallback(const void *
             updateUiInfo.address = QString(event->address);
             updateUiInfo.balance = QString(event->balance);
             updateUiInfo.state = QString(event->state);
+            updateUiInfo.xdag_program_state = event->xdag_program_state;
+            updateUiInfo.balance_state = event->xdag_balance_state;
+            updateUiInfo.address_state = event->xdag_address_state;
             thread->emitUISignal(updateUiInfo);
         return NULL;
 

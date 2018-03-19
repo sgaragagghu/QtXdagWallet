@@ -376,9 +376,20 @@ void QtWalletMain::onXdagUpdateUI(UpdateUiInfo info){
             m_pLEAccount->clear();
             m_pLEBalance->clear();
             ui->statusBar->clearMessage();
-            m_pLEAccount->setText(info.address);
-            m_pLEBalance->setText(info.balance);
-            ui->statusBar->showMessage(info.state);
+
+            if(info.balance_state == en_balance_not_ready){
+                m_pLEBalance->setText(tr("Not Ready"));
+            }else{
+                m_pLEBalance->setText(info.balance);
+            }
+
+            if(info.address_state == en_address_not_ready){
+                m_pLEAccount->setText(tr("Not Ready"));
+            }else{
+                m_pLEAccount->setText(info.address);
+            }
+
+            ui->statusBar->showMessage(getXdagProgramState(info.xdag_program_state));
         break;
     }
 }
@@ -390,6 +401,50 @@ void QtWalletMain::onXdagStateChange(XDAG_PROCESS_STATE state)
             m_pPBConnect->setDisabled(true);
         break;
     }
+}
+
+QString QtWalletMain::getXdagProgramState(en_xdag_program_state state)
+{
+    switch(state){
+        case INIT:
+        return tr("Initializing.");
+        case KEYS:
+        return tr("Generating keys...");
+        case REST:
+        return tr("The local storage is corrupted. Resetting blocks engine.");
+        case LOAD:
+        return tr("Loading blocks from the local storage.");
+        case STOP:
+        return tr("Blocks loaded. Waiting for 'run' command.");
+        case WTST:
+        return tr("Trying to connect to the test network.");
+        case WAIT:
+        return tr("Trying to connect to the main network.");
+        case TTST:
+        return tr("Trying to connect to the testnet pool.");
+        case TRYP:
+        return tr("Trying to connect to the mainnet pool.");
+        case CTST:
+        return tr("Connected to the test network. Synchronizing.");
+        case CONN:
+        return tr("Connected to the main network. Synchronizing.");
+        case XFER:
+        return tr("Waiting for transfer to complete.");
+        case PTST:
+        return tr("Connected to the testnet pool. No mining.");
+        case POOL:
+        return tr("Connected to the mainnet pool. No mining.");
+        case MTST:
+        return tr("Connected to the testnet pool. Mining on. Normal testing.");
+        case MINE:
+        return tr("Connected to the mainnet pool. Mining on. Normal operation.");
+        case STST:
+        return tr("Synchronized with the test network. Normal testing.");
+        case SYNC:
+        return tr("Synchronized with the main network. Normal operation.");
+    }
+
+    return tr("Initializing.");
 }
 
 

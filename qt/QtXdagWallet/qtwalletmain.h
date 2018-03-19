@@ -28,6 +28,8 @@ public:
     explicit QtWalletMain(QWidget *parent = 0);
     ~QtWalletMain();
 
+    static QString getXdagProgramState(en_xdag_program_state state);
+
 private:
     Ui::QtWalletMain *ui;
 

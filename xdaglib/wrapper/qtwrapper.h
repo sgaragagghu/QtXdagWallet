@@ -67,10 +67,44 @@ typedef enum tag_en_xdag_app_log_level{
     en_xdag_trace
 }en_xdag_app_log_level;
 
+typedef enum tag_en_address_load_state{
+    en_address_not_ready,
+    en_address_ready,
+} en_address_load_state;
+
+typedef enum tag_en_balance_load_state{
+    en_balance_not_ready,
+    en_balance_ready,
+} en_balance_load_state;
+
+typedef enum tag_en_xdag_program_state{
+    INIT,
+    KEYS,
+    REST,
+    LOAD,
+    STOP,
+    WTST,
+    WAIT,
+    TTST,
+    TRYP,
+    CTST,
+    CONN,
+    XFER,
+    PTST,
+    POOL,
+    MTST,
+    MINE,
+    STST,
+    SYNC
+} en_xdag_program_state;
+
 typedef struct {
     en_xdag_procedure_type  procedure_type;
     en_xdag_event_type      event_type;
     en_xdag_app_log_level   log_level;
+    en_xdag_program_state   xdag_program_state;
+    en_address_load_state   xdag_address_state;
+    en_balance_load_state   xdag_balance_state;
     char error_msg[MAX_XDAG_ERR_MSG_LEN + 1];
     char address[MAX_XDAG_ADDRESS_LEN + 1];
     char balance[MAX_XDAG_BANLANCE_LEN + 1];
@@ -87,6 +121,7 @@ typedef struct {
     char    *xdag_state;
     char    *xdag_balance;
 }st_xdag_app_msg;
+
 
 /* callback object and callback func for app ui */
 extern st_xdag_app_msg* (*g_app_callback_func)(const void* callback_object,st_xdag_event *event);

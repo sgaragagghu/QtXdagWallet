@@ -458,6 +458,8 @@ int xdag_main(const char *pool_arg)
 void xdag_show_state(xdag_hash_t hash)
 {
     char balance[64] , address[64], state[256];
+    en_balance_load_state balance_state = en_balance_ready;
+    en_address_load_state address_state = en_address_ready;
 
     memset(balance,0,64);
     memset(address,0,64);
@@ -465,14 +467,20 @@ void xdag_show_state(xdag_hash_t hash)
 
     if (!g_app_callback_func)
         return -1;
-    if (g_xdag_state < XDAG_STATE_XFER)
+    if (g_xdag_state < XDAG_STATE_XFER){
+        balance_state = en_balance_not_ready;
         strcpy(balance, "Not ready");
+    }
+
     else
         sprintf(balance, "%.9Lf", amount2cheatcoins(xdag_get_balance(0)));
-    if (!hash)
+    if (!hash){
+        address_state = en_balance_not_ready;
         strcpy(address, "Not ready");
-    else
+    }else{
         strcpy(address, xdag_hash2address(hash));
+    }
+
 
     strcpy(state, get_state());
 
@@ -482,6 +490,10 @@ void xdag_show_state(xdag_hash_t hash)
     memset(&event,0,sizeof(st_xdag_event));
     event.procedure_type = en_procedure_init_wallet;
     event.event_type = en_event_update_state;
+    event.xdag_program_state = g_xdag_state;
+    event.xdag_balance_state = balance_state;
+    event.xdag_address_state = address_state;
+
     strcpy(event.address,address);
     strcpy(event.balance,balance);
     strcpy(event.state,state);
