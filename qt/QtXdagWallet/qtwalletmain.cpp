@@ -333,7 +333,7 @@ void QtWalletMain::onRdmTyped(QString pwd)
 void QtWalletMain::onXdagUpdateUI(UpdateUiInfo info){
 
     switch(info.event_type){
-
+        //request ui type in password or rdm
         case en_event_type_pwd:
             m_pDLPwdType = new PwdDialog(0,DLG_TYPE_PWD);
             connect(m_pDLPwdType,SIGNAL(sendTypePwd(QString)),this,SLOT(onPwdTyped(QString)));
@@ -358,33 +358,15 @@ void QtWalletMain::onXdagUpdateUI(UpdateUiInfo info){
             m_pDLPwdType->show();
         break;
 
+        //notify error
         case en_event_pwd_error:
-        {
-            m_pErrDlg = new ErrorDialog(0,DLG_PWD_ERR);
-            m_pErrDlg->show();
-        }
-        break;
         case en_event_pwd_not_same:
-        {
-            m_pErrDlg = new ErrorDialog(0,DLG_PWD_NOT_THE_SAME);
-            m_pErrDlg->show();
-        }
-        break;
+        case en_event_pwd_format_error:
         case en_event_nothing_transfer:
-        {
-            m_pErrDlg = new ErrorDialog(0,DLG_NOTHING_TO_TRANSFER);
-            m_pErrDlg->show();
-        }
-        break;
         case en_event_balance_too_small:
-        {
-            m_pErrDlg = new ErrorDialog(0,DLG_BALANCE_TOO_SMALL);
-            m_pErrDlg->show();
-        }
-        break;
         case en_event_invalid_recv_address:
         {
-            m_pErrDlg = new ErrorDialog(0,DLG_INVALID_RECV_ADDRESS);
+            m_pErrDlg = new ErrorDialog(0,info.event_type);
             m_pErrDlg->show();
         }
         break;

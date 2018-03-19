@@ -270,19 +270,6 @@ static const char *get_state(void)
 	return states[g_xdag_state];
 }
 
-static inline report_ui_xfer_event(en_xdag_event_type event_type,const char* err_msg){
-
-    st_xdag_event event;
-    memset(&event,0,sizeof(st_xdag_event));
-    event.event_type = event_type;
-    event.procedure_type = en_procedure_xfer_coin;
-
-    if(err_msg)
-        strncpy(event.error_msg,err_msg,strlen(err_msg));
-
-    g_app_callback_func(g_callback_object,&event);
-}
-
 int xdag_xfer_coin(const char* amount,const char* address){
 
     uint32_t pwd[4];
@@ -413,9 +400,9 @@ void xdag_global_init(){
 int xdag_main(const char *pool_arg)
 {
     const char *addrports[256], *bindto = 0, *pubaddr = 0, *miner_address = 0;
-	char *ptr;
-	int transport_flags = 0, n_addrports = 0, n_mining_threads = 0, is_pool = 0, is_miner = 0, i, level;
-	pthread_t th;
+    char *ptr;
+    int transport_flags = 0, n_addrports = 0, n_mining_threads = 0, is_pool = 0, is_miner = 0, i, level;
+    pthread_t th;
 
 //ignore some linux signals to avoid terminate
 #if !defined(_WIN32) && !defined(_WIN64)
@@ -428,15 +415,15 @@ int xdag_main(const char *pool_arg)
 
     xdag_show_state(0);
 
-	if (pubaddr && !bindto) {
-		char str[64], *p = strchr(pubaddr, ':');
-		if (p) {
-			sprintf(str, "0.0.0.0%s", p); bindto = strdup(str);
-		}
-	}
+    if (pubaddr && !bindto) {
+        char str[64], *p = strchr(pubaddr, ':');
+        if (p) {
+            sprintf(str, "0.0.0.0%s", p); bindto = strdup(str);
+        }
+    }
 
-	memset(&g_xdag_stats, 0, sizeof(g_xdag_stats));
-	memset(&g_xdag_extstats, 0, sizeof(g_xdag_extstats));
+    memset(&g_xdag_stats, 0, sizeof(g_xdag_stats));
+    memset(&g_xdag_extstats, 0, sizeof(g_xdag_extstats));
 
     xdag_app_mess("Starting %s, version %s", g_progname, XDAG_VERSION);
 	

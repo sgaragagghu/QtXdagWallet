@@ -21,27 +21,37 @@ typedef enum {
 } en_xdag_procedure_type;
 
 typedef enum {
-    en_event_type_pwd               = 0,
-    en_event_set_pwd                = 1,
-    en_event_retype_pwd             = 2,
-    en_event_set_rdm                = 3,
-    en_event_pwd_not_same           = 4,
-    en_event_pwd_error              = 5,
-    en_event_update_progress        = 6,
-    en_event_make_block_error       = 7,
-    en_event_update_state           = 8,
-    en_event_open_dnetfile_error    = 9,
-    en_event_open_walletfile_error  = 10,
-    en_event_load_storage_error     = 11,
+    en_event_type_pwd               = 0x1000,
+    en_event_set_pwd                = 0x1001,
+    en_event_retype_pwd             = 0x1002,
+    en_event_set_rdm                = 0x1003,
+    en_event_pwd_not_same           = 0x1004,
+    en_event_pwd_error              = 0x1005,
+    en_event_pwd_format_error       = 0x1006,
 
-    en_event_nothing_transfer       = 12,
-    en_event_balance_too_small      = 13,
-    en_event_invalid_recv_address      = 14,
-    en_event_xdag_transfered        = 15,
+    //dnet wallet storage error
+    en_event_open_dnetfile_error    = 0x2000,
+    en_event_open_walletfile_error  = 0x2001,
+    en_event_load_storage_error     = 0x2002,
+    en_event_write_dnet_file_error  = 0x2003,
+    en_event_add_trust_host_error   = 0x2004,
 
-    // invoke print log function
-    en_event_xdag_log_print         = 99,
-    en_event_unkown                 = 100,
+    //xfer error
+    en_event_nothing_transfer       = 0x3000,
+    en_event_balance_too_small      = 0x3001,
+    en_event_invalid_recv_address   = 0x3002,
+    en_event_xdag_transfered        = 0x3003,
+
+    //miner net thread error
+    en_event_connect_pool_timeout   = 0x4000,
+    en_event_make_block_error       = 0x4001,
+
+    //invoke print log or update ui
+    en_event_xdag_log_print         = 0x5000,
+    en_event_update_progress        = 0x5001,
+    en_event_update_state           = 0x5002,
+
+    en_event_unkown                 = 0xf000,
 } en_xdag_event_type;
 
 typedef enum tag_en_xdag_app_log_level{
@@ -93,6 +103,10 @@ extern void xdag_wrapper_init(const void* callback_object,
                               st_xdag_app_msg* (*callback_func)(const void* callback_object,st_xdag_event *event));
 
 extern void xdag_send_coin(const char* amount,const char* address);
+
+extern void report_ui_walletinit_event(en_xdag_event_type event_type,const char* err_msg);
+extern void report_ui_xfer_event(en_xdag_event_type event_type,const char* err_msg);
+
 
 extern void xdag_wrapper_uninit();
 

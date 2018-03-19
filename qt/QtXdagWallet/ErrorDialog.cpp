@@ -1,7 +1,7 @@
 #include "ErrorDialog.h"
 #include "ui_errordialog.h"
 
-ErrorDialog::ErrorDialog(QWidget *parent, ERR_DLG_TYPE type) :
+ErrorDialog::ErrorDialog(QWidget *parent, en_xdag_event_type type) :
     QDialog(parent),
     mDlgType(type),
     ui(new Ui::ErrorDialog)
@@ -21,9 +21,10 @@ ErrorDialog::ErrorDialog(QWidget *parent, ERR_DLG_TYPE type) :
     m_pVBLGlobal->addWidget(m_pBtnOK,Qt::AlignHCenter);
 
     this->setLayout(m_pVBLGlobal);
+    this->setWindowIcon(QIcon(":/icon/xdagwallet.ico"));
     connect(m_pBtnOK,SIGNAL(clicked()),this,SLOT(onBtnClicked()));
 
-    setFixedSize(320,70);
+    setFixedSize(320,100);
 }
 
 ErrorDialog::~ErrorDialog()
@@ -31,20 +32,20 @@ ErrorDialog::~ErrorDialog()
     delete ui;
 }
 
-QString ErrorDialog::getTextFromDlgType(ERR_DLG_TYPE type)
+QString ErrorDialog::getTextFromDlgType(en_xdag_event_type type)
 {
     switch (type) {
-        case DLG_PWD_ERR:
+        case en_event_pwd_error:
             return tr("password error");
-        case DLG_PWD_FORMAT_ERR:
+        case en_event_pwd_format_error:
             return tr("password foramt error \n length 8-18 consist at leat 1 charactor 1 number");
-        case DLG_PWD_NOT_THE_SAME:
+        case en_event_pwd_not_same:
             return tr("password not the same");
-        case DLG_NOTHING_TO_TRANSFER:
+        case en_event_nothing_transfer:
             return tr("nothing transfer");
-        case DLG_BALANCE_TOO_SMALL:
+        case en_event_balance_too_small:
             return tr("balance too small");
-        case DLG_INVALID_RECV_ADDRESS:
+        case en_event_invalid_recv_address:
             return tr("invalid receive address");
         default:
             return tr("unkown error");
@@ -55,12 +56,12 @@ QString ErrorDialog::getTextFromDlgType(ERR_DLG_TYPE type)
 void ErrorDialog::onBtnClicked()
 {
     switch(this->mDlgType){
-        case DLG_PWD_ERR:
-        case DLG_PWD_NOT_THE_SAME:
-        case DLG_PWD_FORMAT_ERR:
-        case DLG_NOTHING_TO_TRANSFER:
-        case DLG_BALANCE_TOO_SMALL:
-        case DLG_INVALID_RECV_ADDRESS:
+        case en_event_pwd_error:
+        case en_event_pwd_format_error:
+        case en_event_pwd_not_same:
+        case en_event_nothing_transfer:
+        case en_event_balance_too_small:
+        case en_event_invalid_recv_address:
             this->close();
         break;
     }

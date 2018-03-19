@@ -12,7 +12,7 @@ PwdDialog::PwdDialog(QWidget *parent, PWD_DLG_TYPE type) :
 
     m_pLable = new QLabel;
     m_pLEPwd = new PwdLineEdit;
-    m_pPBOK = new QPushButton("OK");
+    m_pPBOK = new QPushButton(tr("OK"));
 
     m_pLable->setFixedSize(100,25);
     m_pLEPwd->setFixedSize(200,25);
@@ -37,21 +37,21 @@ PwdDialog::PwdDialog(QWidget *parent, PWD_DLG_TYPE type) :
     m_pPBOK->installEventFilter(this);
 
     setWindowIcon(QIcon(":/icon/xdagwallet.ico"));
-    setWindowTitle("Dagger Wallet(XDAG)");
+    setWindowTitle(tr("Dagger Wallet(XDAG)"));
     setFixedSize(320,70);
 
     switch(type){
         case DLG_TYPE_PWD:
-            m_pLable->setText("input password");
+            m_pLable->setText(tr("input password"));
         break;
         case DLG_SET_PWD:
-            m_pLable->setText("set password");
+            m_pLable->setText(tr("set password"));
         break;
         case DLG_RETYPE_PWD:
-            m_pLable->setText("confirm password");
+            m_pLable->setText(tr("confirm password"));
         break;
         case DLG_TYPE_RDM:
-            m_pLable->setText("set random keys");
+            m_pLable->setText(tr("set random keys"));
         break;
     }
 
@@ -83,22 +83,22 @@ void PwdDialog::onBtnOKClicked()
 
     switch(mDlgType){
         case DLG_TYPE_PWD:
-            if(!mPwdRegExp.exactMatch(str)){
-                m_pErrDlg = new ErrorDialog(0,DLG_PWD_FORMAT_ERR);
-                m_pErrDlg->exec();
-                return;
-            }
             emit sendTypePwd(str);
         break;
         case DLG_SET_PWD:
             if(!mPwdRegExp.exactMatch(str)){
-                m_pErrDlg = new ErrorDialog(0,DLG_PWD_FORMAT_ERR);
+                m_pErrDlg = new ErrorDialog(0,en_event_pwd_format_error);
                 m_pErrDlg->exec();
                 return;
             }
             emit sendSetPwd(str);
         break;
         case DLG_RETYPE_PWD:
+            if(!mPwdRegExp.exactMatch(str)){
+                m_pErrDlg = new ErrorDialog(0,en_event_pwd_format_error);
+                m_pErrDlg->exec();
+                return;
+            }
             emit sendRetypePwd(str);
         break;
         case DLG_TYPE_RDM:
