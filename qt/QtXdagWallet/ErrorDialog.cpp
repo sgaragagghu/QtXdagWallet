@@ -55,14 +55,15 @@ QString ErrorDialog::getTextFromDlgType(en_xdag_event_type type)
 
 void ErrorDialog::onBtnClicked()
 {
-    switch(this->mDlgType){
-        case en_event_pwd_error:
-        case en_event_pwd_format_error:
-        case en_event_pwd_not_same:
-        case en_event_nothing_transfer:
-        case en_event_balance_too_small:
-        case en_event_invalid_recv_address:
-            this->close();
-        break;
-    }
+//    switch(this->mDlgType){
+//        case en_event_pwd_error:
+//        case en_event_pwd_format_error:
+//        case en_event_pwd_not_same:
+//        case en_event_nothing_transfer:
+//        case en_event_balance_too_small:
+//        case en_event_invalid_recv_address:
+//            this->close();
+//        break;
+//    }
+    this->close();
 }
