@@ -5,10 +5,7 @@
 
 #include <QMessageBox>
 #include <QDialog>
-QWaitCondition g_condPwdTyped;
-QWaitCondition g_condPwdSeted;
-QWaitCondition g_condPwdReTyped;
-QWaitCondition g_condRdmTyped;
+QWaitCondition g_condAuthTyped;
 QWaitCondition g_condUiNotified;
 QMutex g_Mutex;
 QMap<QString,QString> g_MsgMap;
@@ -198,10 +195,7 @@ void QtWalletMain::initWorkThread(){
     m_pXdagThread = new XdagWalletProcessThread(this);
 
     m_pXdagThread->setMutex(&g_Mutex);
-    m_pXdagThread->setCondPwdTyped(&g_condPwdTyped);
-    m_pXdagThread->setCondPwdSeted(&g_condPwdSeted);
-    m_pXdagThread->setCondPwdReTyped(&g_condPwdReTyped);
-    m_pXdagThread->setCondRdmTyped(&g_condRdmTyped);
+    m_pXdagThread->setCondAuthTyped(&g_condAuthTyped);
     m_pXdagThread->setCondUiNotified(&g_condUiNotified);
 
     m_pXdagThread->setMsgMap(&g_MsgMap);
@@ -278,6 +272,12 @@ void QtWalletMain::onChangeLanguage(QAction *action)
     translateUI(lang);
 }
 
+void QtWalletMain::onAuthRejected()
+{
+    qDebug() <<  " auth rejected ";
+    m_pXdagThread->wakeAuthTyped();
+}
+
 
 void QtWalletMain::onPwdTyped(QString pwd)
 {
@@ -288,7 +288,7 @@ void QtWalletMain::onPwdTyped(QString pwd)
         m_pDLPwdType->closeDialog();
         m_pDLPwdType = NULL;
     }
-    m_pXdagThread->wakePasswdTyped();
+    m_pXdagThread->wakeAuthTyped();
 }
 
 void QtWalletMain::onPwdSeted(QString pwd)
@@ -300,7 +300,7 @@ void QtWalletMain::onPwdSeted(QString pwd)
         m_pDLPwdType->closeDialog();
         m_pDLPwdType = NULL;
     }
-    m_pXdagThread->wakePasswdSeted();
+    m_pXdagThread->wakeAuthTyped();
 }
 
 void QtWalletMain::onPwdReTyped(QString pwd)
@@ -312,7 +312,7 @@ void QtWalletMain::onPwdReTyped(QString pwd)
         m_pDLPwdType->closeDialog();
         m_pDLPwdType = NULL;
     }
-    m_pXdagThread->wakePasswdRetyped();
+    m_pXdagThread->wakeAuthTyped();
 }
 
 void QtWalletMain::onRdmTyped(QString pwd)
@@ -324,11 +324,9 @@ void QtWalletMain::onRdmTyped(QString pwd)
         m_pDLPwdType->closeDialog();
         m_pDLPwdType = NULL;
     }
-    m_pXdagThread->wakeRdmTyped();
+    m_pXdagThread->wakeAuthTyped();
 
 }
-
-
 
 void QtWalletMain::onXdagUpdateUI(UpdateUiInfo info){
 
@@ -337,25 +335,26 @@ void QtWalletMain::onXdagUpdateUI(UpdateUiInfo info){
         case en_event_type_pwd:
             m_pDLPwdType = new PwdDialog(0,DLG_TYPE_PWD);
             connect(m_pDLPwdType,SIGNAL(sendTypePwd(QString)),this,SLOT(onPwdTyped(QString)));
-            m_pDLPwdType->show();
+            connect(m_pDLPwdType,SIGNAL(rejected()),this,SLOT(onAuthRejected()));
+            m_pDLPwdType->exec();
         break;
 
         case en_event_set_pwd:
             m_pDLPwdType = new PwdDialog(0,DLG_SET_PWD);
             connect(m_pDLPwdType,SIGNAL(sendSetPwd(QString)),this,SLOT(onPwdSeted(QString)));
-            m_pDLPwdType->show();
+            m_pDLPwdType->exec();
         break;
 
         case en_event_retype_pwd:
             m_pDLPwdType = new PwdDialog(0,DLG_RETYPE_PWD);
             connect(m_pDLPwdType,SIGNAL(sendRetypePwd(QString)),this,SLOT(onPwdReTyped(QString)));
-            m_pDLPwdType->show();
+            m_pDLPwdType->exec();
         break;
 
         case en_event_set_rdm:
             m_pDLPwdType = new PwdDialog(0,DLG_TYPE_RDM);
             connect(m_pDLPwdType,SIGNAL(sendRdm(QString)),this,SLOT(onRdmTyped(QString)));
-            m_pDLPwdType->show();
+            m_pDLPwdType->exec();
         break;
 
         //notify error
@@ -367,7 +366,7 @@ void QtWalletMain::onXdagUpdateUI(UpdateUiInfo info){
         case en_event_invalid_recv_address:
         {
             m_pErrDlg = new ErrorDialog(0,info.event_type);
-            m_pErrDlg->show();
+            m_pErrDlg->exec();
         }
         break;
 

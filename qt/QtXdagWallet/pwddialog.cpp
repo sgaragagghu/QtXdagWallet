@@ -105,6 +105,7 @@ void PwdDialog::onBtnOKClicked()
             emit sendRdm(str);
         break;
     }
+    this->accept();
 }
 
 bool PwdDialog::eventFilter(QObject *obj, QEvent *event)

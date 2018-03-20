@@ -87,6 +87,7 @@ private slots:
     void onBtnConnectClicked();
     void onButtonXferClicked();
     void onChangeLanguage(QAction *);
+    void onAuthRejected();
     void onPwdTyped(QString pwd);
     void onPwdSeted(QString pwd);
     void onPwdReTyped(QString pwd);

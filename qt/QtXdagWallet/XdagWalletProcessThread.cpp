@@ -1,5 +1,7 @@
 #include "XdagWalletProcessThread.h"
 
+#include <QMap>
+
 
 XdagWalletProcessThread::XdagWalletProcessThread(QObject *parent = 0)
     :m_bStopped(true)
@@ -13,7 +15,6 @@ XdagWalletProcessThread::~XdagWalletProcessThread()
     quit();
     wait();
 }
-
 
 void XdagWalletProcessThread::Start()
 {
@@ -58,20 +59,6 @@ const char* XdagWalletProcessThread::getPoolAddr()
 void XdagWalletProcessThread::setMutex(QMutex *mutex){
     this->m_pMutex = mutex;
 }
-void XdagWalletProcessThread::setCondPwdTyped(QWaitCondition *cond){
-    this->m_pCondPwdTyped = cond;
-}
-
-void XdagWalletProcessThread::setCondPwdSeted(QWaitCondition *cond)
-{
-    this->m_pCondPwdSeted = cond;
-}
-void XdagWalletProcessThread::setCondPwdReTyped(QWaitCondition *cond){
-    this->m_pCondPwdReTyped = cond;
-}
-void XdagWalletProcessThread::setCondRdmTyped(QWaitCondition *cond){
-    this->m_pCondRdmTyped = cond;
-}
 
 void XdagWalletProcessThread::setCondUiNotified(QWaitCondition *cond)
 {
@@ -92,19 +79,24 @@ QMap<QString, QString>* XdagWalletProcessThread::getMsgMap()
     return this->m_pMsgMap;
 }
 
-QWaitCondition* XdagWalletProcessThread::getCondPwdTyped(void){
-    return this->m_pCondPwdTyped;
+void XdagWalletProcessThread::setCondAuthTyped(QWaitCondition *cond)
+{
+    this->m_pCondAuthTyped = cond;
 }
 
-QWaitCondition *XdagWalletProcessThread::getCondPwdSeted()
+QWaitCondition *XdagWalletProcessThread::getCondAuthTyped()
 {
-    return this->m_pCondPwdSeted;
+    return this->m_pCondAuthTyped;
 }
-QWaitCondition* XdagWalletProcessThread::getCondPwdReTyped(void){
-    return this->m_pCondPwdReTyped;
+
+void XdagWalletProcessThread::waitAuthTyped()
+{
+    this->m_pCondAuthTyped->wait(m_pMutex);
 }
-QWaitCondition *XdagWalletProcessThread::getCondRdmTyped(){
-    return this->m_pCondRdmTyped;
+
+void XdagWalletProcessThread::wakeAuthTyped()
+{
+    this->m_pCondAuthTyped->wakeOne();
 }
 
 QWaitCondition *XdagWalletProcessThread::getCondUiNotified()
@@ -115,48 +107,6 @@ QWaitCondition *XdagWalletProcessThread::getCondUiNotified()
 void XdagWalletProcessThread::setMsgQueue(QQueue<UiNotifyMessage> *msgQueue)
 {
     this->m_pMsgQueue = msgQueue;
-}
-
-void XdagWalletProcessThread::waitPasswdTyped()
-{
-    qDebug() << " qcondiction wait password typed current thread id " << QThread::currentThreadId();
-    this->m_pCondPwdTyped->wait(this->m_pMutex);
-}
-
-void XdagWalletProcessThread::wakePasswdTyped()
-{
-    qDebug() << " qcondiction wake password typed current thread id " << QThread::currentThreadId();
-    this->m_pCondPwdTyped->wakeAll();
-}
-
-void XdagWalletProcessThread::waitPasswdSeted()
-{
-    this->m_pCondPwdSeted->wait(this->m_pMutex);
-}
-
-void XdagWalletProcessThread::wakePasswdSeted()
-{
-    this->m_pCondPwdSeted->wakeAll();
-}
-
-void XdagWalletProcessThread::waitPasswdRetyped()
-{
-    this->m_pCondPwdReTyped->wait(this->m_pMutex);
-}
-
-void XdagWalletProcessThread::wakePasswdRetyped()
-{
-     this->m_pCondPwdReTyped->wakeAll();
-}
-
-void XdagWalletProcessThread::waitRdmTyped()
-{
-    this->m_pCondRdmTyped->wait(this->m_pMutex);
-}
-
-void XdagWalletProcessThread::wakeRdmTyped()
-{
-    this->m_pCondRdmTyped->wakeAll();
 }
 
 void XdagWalletProcessThread::run()
@@ -223,10 +173,7 @@ st_xdag_app_msg* XdagWalletProcessThread::XdagWalletProcessCallback(const void *
 
     XdagWalletProcessThread *thread = (XdagWalletProcessThread*)call_back_object;
     QMutex *mutex = thread->getMutex();
-    QWaitCondition *condPwdTyped = thread->getCondPwdTyped();
-    QWaitCondition *condPwdSeted = thread->getCondPwdSeted();
-    QWaitCondition *condPwdReTyped = thread->getCondPwdReTyped();
-    QWaitCondition *condRdmTyped = thread->getCondRdmTyped();
+    QWaitCondition *condAuthTyped = thread->getCondAuthTyped();
 
     qDebug() << " xdag process callback current thread id " << QThread::currentThreadId();
 
@@ -238,84 +185,113 @@ st_xdag_app_msg* XdagWalletProcessThread::XdagWalletProcessCallback(const void *
     st_xdag_app_msg *msg = NULL;
     UpdateUiInfo updateUiInfo;
     switch(event->event_type){
-        //wait ui notify msg
+
         case en_event_type_pwd:
+        {
             qDebug() << " event type need type password current threadid " << QThread::currentThreadId();
 
-            //wait ui type password
             mutex->lock();
             qDebug() << " en_event_type_pwd lock " << QThread::currentThreadId();
             updateUiInfo.event_type = event->event_type;
             updateUiInfo.procedure_type = event->procedure_type;
             thread->emitUISignal(updateUiInfo);
-            thread->waitPasswdTyped();
 
-            msg = xdag_malloc_app_msg();
-            if(msg){
-                msg->xdag_pwd = strdup(thread->getMsgMap()->find("type-passwd")->toStdString().c_str());
+            //wait ui type password
+            thread->waitAuthTyped();
+
+            QMap<QString, QString>::iterator it;
+            it = thread->getMsgMap()->find("type-passwd");
+
+            if(it != thread->getMsgMap()->end()){
+                msg = xdag_malloc_app_msg();
+                msg->xdag_pwd = strdup(it->toStdString().c_str());
                 thread->getMsgMap()->clear();
             }
+
             qDebug() << " en_event_type_pwd unlock " << QThread::currentThreadId();
             mutex->unlock();
-            return msg;
-        case en_event_set_pwd:
-            qDebug() << " event type need set password current threadid " << QThread::currentThreadId();
+        }
+        return msg;
 
-            //wait ui set password
+        case en_event_set_pwd:
+        {
+            qDebug() << " event type need type password current threadid " << QThread::currentThreadId();
+
             mutex->lock();
-            qDebug() << " en_event_set_pwd lock " << QThread::currentThreadId();
+            qDebug() << " en_event_type_pwd lock " << QThread::currentThreadId();
             updateUiInfo.event_type = event->event_type;
             updateUiInfo.procedure_type = event->procedure_type;
             thread->emitUISignal(updateUiInfo);
-            thread->waitPasswdSeted();
 
-            msg = xdag_malloc_app_msg();
-            if(msg){
-                msg->xdag_pwd = strdup(thread->getMsgMap()->find("set-passwd")->toStdString().c_str());
+            //wait ui type password
+            thread->waitAuthTyped();
+
+            QMap<QString, QString>::iterator it;
+            it = thread->getMsgMap()->find("set-passwd");
+
+            if(it != thread->getMsgMap()->end()){
+                msg = xdag_malloc_app_msg();
+                msg->xdag_pwd = strdup(it->toStdString().c_str());
                 thread->getMsgMap()->clear();
             }
-            qDebug() << " en_event_set_pwd un lock " << QThread::currentThreadId();
+
+            qDebug() << " en_event_type_pwd unlock " << QThread::currentThreadId();
             mutex->unlock();
+        }
         return msg;
 
         case en_event_retype_pwd:
-            qDebug() << " event type need retype password current threadid " << QThread::currentThreadId();
+        {
+            qDebug() << " event type need type password current threadid " << QThread::currentThreadId();
 
-            //wait ui retype password
             mutex->lock();
-            qDebug() << " en_event_retype_pwd lock " << QThread::currentThreadId();
+            qDebug() << " en_event_type_pwd lock " << QThread::currentThreadId();
             updateUiInfo.event_type = event->event_type;
             updateUiInfo.procedure_type = event->procedure_type;
             thread->emitUISignal(updateUiInfo);
-            thread->waitPasswdRetyped();
 
-            msg = xdag_malloc_app_msg();
-            if(msg){
-                msg->xdag_retype_pwd = strdup(thread->getMsgMap()->find("retype-passwd")->toStdString().c_str());
+            //wait ui type password
+            thread->waitAuthTyped();
+
+            QMap<QString, QString>::iterator it;
+            it = thread->getMsgMap()->find("retype-passwd");
+
+            if(it != thread->getMsgMap()->end()){
+                msg = xdag_malloc_app_msg();
+                msg->xdag_pwd = strdup(it->toStdString().c_str());
                 thread->getMsgMap()->clear();
             }
-            qDebug() << " en_event_retype_pwd un lock " << QThread::currentThreadId();
-            mutex->unlock();
 
+            qDebug() << " en_event_type_pwd unlock " << QThread::currentThreadId();
+            mutex->unlock();
+        }
         return msg;
 
         case en_event_set_rdm:
-            qDebug() << " event type need type rdm current threadid " << QThread::currentThreadId();
+        {
+            qDebug() << " event type need type password current threadid " << QThread::currentThreadId();
 
-            //wait ui set random keys
             mutex->lock();
-            qDebug() << " en_event_set_rdm lock " << QThread::currentThreadId();
+            qDebug() << " en_event_type_pwd lock " << QThread::currentThreadId();
             updateUiInfo.event_type = event->event_type;
             updateUiInfo.procedure_type = event->procedure_type;
             thread->emitUISignal(updateUiInfo);
-            thread->waitRdmTyped();
-            msg = xdag_malloc_app_msg();
-            if(msg){
-                msg->xdag_rdm = strdup(thread->getMsgMap()->find("type-rdm")->toStdString().c_str());
+
+            //wait ui type password
+            thread->waitAuthTyped();
+
+            QMap<QString, QString>::iterator it;
+            it = thread->getMsgMap()->find("type-rdm");
+
+            if(it != thread->getMsgMap()->end()){
+                msg = xdag_malloc_app_msg();
+                msg->xdag_pwd = strdup(it->toStdString().c_str());
                 thread->getMsgMap()->clear();
             }
-            qDebug() << " en_event_set_rdm un lock " << QThread::currentThreadId();
+
+            qDebug() << " en_event_type_pwd unlock " << QThread::currentThreadId();
             mutex->unlock();
+        }
         return msg;
 
         case en_event_pwd_not_same:
@@ -456,6 +432,3 @@ void XdagWalletProcessThread::processUiNotifyMessage(UiNotifyMessage & msg)
         break;
     }
 }
-
-
-

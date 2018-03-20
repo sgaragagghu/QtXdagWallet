@@ -41,7 +41,7 @@ int dnet_init() {
     }
 
     if ((err = dnet_crypt_init(DNET_VERSION))) {
-        sleep(3);
+        //sleep(3);
         return err;
     }
 

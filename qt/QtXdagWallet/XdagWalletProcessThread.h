@@ -48,17 +48,14 @@ public:
     void setMsgMap(QMap<QString,QString> *map);
     QMap<QString,QString>* getMsgMap();
 
-    void setCondPwdTyped(QWaitCondition *cond);
-    void setCondPwdSeted(QWaitCondition *cond);
-    void setCondPwdReTyped(QWaitCondition *cond);
-    void setCondRdmTyped(QWaitCondition *cond);
-    void setCondUiNotified(QWaitCondition *cond);
+    void setCondAuthTyped(QWaitCondition *cond);
+    QWaitCondition* getCondAuthTyped(void);
 
-    QWaitCondition* getCondPwdTyped(void);
-    QWaitCondition* getCondPwdSeted(void);
-    QWaitCondition* getCondPwdReTyped(void);
-    QWaitCondition* getCondRdmTyped(void);
-    QWaitCondition* getCondUiNotified(void);
+    void setCondUiNotified(QWaitCondition *cond);
+    QWaitCondition* getCondUiNotified();
+
+    void waitAuthTyped();
+    void wakeAuthTyped();
 
     void setMsgQueue(QQueue<UiNotifyMessage> *msgQueue);
 
@@ -73,16 +70,6 @@ public:
 
     //process ui notify message
     void processUiNotifyMessage(UiNotifyMessage &msg);
-
-    void waitPasswdTyped();
-    void wakePasswdTyped();
-    void waitPasswdSeted();
-    void wakePasswdSeted();
-    void waitPasswdRetyped();
-    void wakePasswdRetyped();
-    void waitRdmTyped();
-    void wakeRdmTyped();
-
 protected:
     virtual void run();
 
@@ -96,14 +83,8 @@ Q_SIGNALS:
 private:
     //Mutex Lock
     QMutex *m_pMutex;
-    //Condition wait password typed
-    QWaitCondition *m_pCondPwdTyped;
-    //Condition wait password seted
-    QWaitCondition *m_pCondPwdSeted;
-    //Condition wait password re-typed
-    QWaitCondition *m_pCondPwdReTyped;
-    //Condition wait password re-typed
-    QWaitCondition *m_pCondRdmTyped;
+    //Condition wait Authentication information typed
+    QWaitCondition *m_pCondAuthTyped;
     //Condition wait ui notify
     QWaitCondition *m_pUiNotified;
 
