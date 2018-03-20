@@ -67,7 +67,7 @@ const char *g_progname = "xdagwallet";
 
 //global statistical variable
 int g_xdag_run = 0;
-int g_xdag_state = XDAG_STATE_INIT;
+int g_xdag_state = XDAG_STATE_NINT;
 int g_xdag_testnet = 0;
 int g_is_miner = 0;
 static int g_is_pool = 0;
@@ -395,6 +395,7 @@ void xdag_global_init(){
     g_xdag_run = 1;
     g_is_miner = 1;
     g_is_pool = 0;
+    g_xdag_state = XDAG_STATE_INIT;
 }
 
 int xdag_main(const char *pool_arg)
@@ -491,20 +492,20 @@ void xdag_show_state(xdag_hash_t hash)
 
     if (!g_app_callback_func)
         return -1;
+
     if (g_xdag_state < XDAG_STATE_XFER){
         balance_state = en_balance_not_ready;
         strcpy(balance, "Not ready");
+    }else{
+        sprintf(balance, "%.9Lf", amount2cheatcoins(xdag_get_balance(0)));
     }
 
-    else
-        sprintf(balance, "%.9Lf", amount2cheatcoins(xdag_get_balance(0)));
-    if (!hash){
-        address_state = en_balance_not_ready;
+    if (g_xdag_state < XDAG_STATE_NINT || !hash){
+        address_state = en_address_not_ready;
         strcpy(address, "Not ready");
     }else{
         strcpy(address, xdag_hash2address(hash));
     }
-
 
     strcpy(state, get_state());
 
@@ -529,12 +530,11 @@ void xdag_show_state(xdag_hash_t hash)
 
 void xdag_uninit(){
 
-    g_xdag_state = XDAG_STATE_INIT;
+    g_xdag_state = XDAG_STATE_NINT;
     xdag_wallet_uninit();
     xdag_netdb_uninit();
     xdag_storage_uninit();
     xdag_mem_uninit();
-    xdag_app_log_uninit();
     xdag_transport_stop();
 
     //reinit ui if needed

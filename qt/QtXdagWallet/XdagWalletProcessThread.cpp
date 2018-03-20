@@ -26,8 +26,8 @@ void XdagWalletProcessThread::Start()
 void XdagWalletProcessThread::Stop()
 {
     moveStateTo(XDAG_PROCESS_STOP);
-    this->quit();
     m_bStopped = true;
+    this->quit();
 }
 
 
@@ -117,12 +117,6 @@ void XdagWalletProcessThread::run()
 
     /* dump the pool address and keep it always in memory */
     char* address = strdup(mPoolAddr.toStdString().c_str());
-
-    if(xdag_wrapper_log_init() < 0){
-        qDebug() << " error while wallet log initialized  ";
-        this->Stop();
-        return;
-    }
 
     xdag_wrapper_init((void*)this,XdagWalletProcessCallback);
     xdag_global_init();
@@ -260,7 +254,7 @@ st_xdag_app_msg* XdagWalletProcessThread::XdagWalletProcessCallback(const void *
 
             if(it != thread->getMsgMap()->end()){
                 msg = xdag_malloc_app_msg();
-                msg->xdag_pwd = strdup(it->toStdString().c_str());
+                msg->xdag_retype_pwd = strdup(it->toStdString().c_str());
                 thread->getMsgMap()->clear();
             }
 
@@ -287,7 +281,7 @@ st_xdag_app_msg* XdagWalletProcessThread::XdagWalletProcessCallback(const void *
 
             if(it != thread->getMsgMap()->end()){
                 msg = xdag_malloc_app_msg();
-                msg->xdag_pwd = strdup(it->toStdString().c_str());
+                msg->xdag_rdm = strdup(it->toStdString().c_str());
                 thread->getMsgMap()->clear();
             }
 

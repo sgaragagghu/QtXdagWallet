@@ -36,6 +36,7 @@ private:
     QLabel *m_pLBPool;
     QLineEdit *m_pLEPool;
     QPushButton *m_pPBConnect;
+    QPushButton *m_pPBDisConnect;
     QHBoxLayout *m_pHBLPool;
 
     QLabel *m_pLBBalance;
@@ -87,6 +88,7 @@ private slots:
     void onXdagProcessStateChange(XDAG_PROCESS_STATE state);
     void onXdagProcessFinished();
     void onBtnConnectClicked();
+    void onBtnDisConnectClicked();
     void onButtonXferClicked();
     void onChangeLanguage(QAction *);
     void onAuthRejected();

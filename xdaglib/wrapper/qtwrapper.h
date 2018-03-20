@@ -78,6 +78,7 @@ typedef enum tag_en_balance_load_state{
 } en_balance_load_state;
 
 typedef enum tag_en_xdag_program_state{
+    NINT,
     INIT,
     KEYS,
     REST,
@@ -109,7 +110,7 @@ typedef struct {
     char address[MAX_XDAG_ADDRESS_LEN + 1];
     char balance[MAX_XDAG_BANLANCE_LEN + 1];
     char state[MAX_XDAG_STATE_LEN + 1];
-    char *app_log_msg;                  //always point to the xdag log buffer g_xdag_app_log_buff
+    char app_log_msg[MAX_XDAG_LOG_BUF_SIZE + 1];
 } st_xdag_event;
 
 typedef struct {
@@ -129,8 +130,6 @@ extern void* g_callback_object;
 
 extern st_xdag_app_msg* xdag_malloc_app_msg();
 extern void xdag_free_app_msg(st_xdag_app_msg* msg);
-
-extern int xdag_wrapper_log_init();
 
 extern const char* xdag_get_version();
 

@@ -67,6 +67,7 @@ void QtWalletMain::initUI()
     m_pLEBalance = new QLineEdit(tr("Not Ready"));
     m_pLBAccount = new QLabel(tr("Account"));
     m_pLEAccount = new QLineEdit(tr("Not Ready"));
+    m_pPBDisConnect = new QPushButton(tr("DisConnect"));
 
     m_pLBBalance->setAlignment(Qt::AlignLeft| Qt::AlignVCenter);
     m_pLBBalance->setFixedSize(QLABEL_LEN,QLABLE_HEIGHT);
@@ -76,6 +77,8 @@ void QtWalletMain::initUI()
     m_pLBAccount->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
     m_pLEBalance->setFixedSize(AMOUNT_LINEEDIT_LEN,QLINE_EDIT_HEIGHT);
     m_pLEAccount->setFixedSize(ADRESS_LINEEDIT_LEN,QLINE_EDIT_HEIGHT);
+    m_pPBDisConnect->setFixedSize(QPUSHBUTTON_LEN,QPUSHBUTTON_HEIGHT);
+    m_pPBDisConnect->setEnabled(false);
     m_pLEAccount->setFocusPolicy(Qt::NoFocus);
     m_pLEBalance->setFocusPolicy(Qt::NoFocus);
     m_pHBLAccount = new QHBoxLayout;
@@ -85,6 +88,7 @@ void QtWalletMain::initUI()
     m_pHBLAccount->addWidget(m_pLEBalance);
     m_pHBLAccount->addWidget(m_pLBAccount);
     m_pHBLAccount->addWidget(m_pLEAccount);
+    m_pHBLAccount->addWidget(m_pPBDisConnect);
 
     m_pLBTransfer = new QLabel(tr("Transfer"));
     m_pLESendAmount = new QLineEdit("");
@@ -210,6 +214,7 @@ void QtWalletMain::initSignal()
 {
     //connect button click signal and slot
     connect(m_pPBConnect,&QPushButton::clicked,this,&QtWalletMain::onBtnConnectClicked);
+    connect(m_pPBDisConnect,&QPushButton::clicked,this,&QtWalletMain::onBtnDisConnectClicked);
     connect(m_pPBXfer,&QPushButton::clicked,this,&QtWalletMain::onButtonXferClicked);
 
     //connect xdag and ui slot
@@ -232,6 +237,16 @@ void QtWalletMain::onBtnConnectClicked()
     if(m_pXdagThread->isStopped()){
         m_pPBConnect->setEnabled(false);
         m_pXdagThread->start();
+    }
+}
+
+void QtWalletMain::onBtnDisConnectClicked()
+{
+    //stop the xdag thread
+    if(!m_pXdagThread->isStopped()){
+        m_pPBDisConnect->setEnabled(false);
+        m_pXdagThread->requestInterruption();
+        g_condUiNotified.wakeAll();
     }
 }
 
@@ -390,6 +405,17 @@ void QtWalletMain::procUpdateUiInfo(UpdateUiInfo info){
     m_pLEBalance->clear();
     ui->statusBar->clearMessage();
 
+    //not initialized
+    if(info.xdag_program_state == NINT){
+        m_pPBConnect->setEnabled(true);
+        m_pPBDisConnect->setEnabled(false);
+        m_pPBXfer->setEnabled(false);
+        m_pLEBalance->setText(tr("Not Ready"));
+        m_pLEAccount->setText(tr("Not Ready"));
+        m_pLESendAmount->clear();
+        m_pLERecvAddress->clear();
+    }
+
     //not connected to the pool
     if(info.xdag_program_state >= INIT
             && info.xdag_program_state <= TRYP){
@@ -400,6 +426,7 @@ void QtWalletMain::procUpdateUiInfo(UpdateUiInfo info){
     //already connected to the pool
     if(info.xdag_program_state >= CTST){
         m_pPBConnect->setEnabled(false);
+        m_pPBDisConnect->setEnabled(true);
 
         //address or balance not ready
         if(info.address_state <= en_address_not_ready ||
@@ -451,6 +478,8 @@ void QtWalletMain::onXdagProcessFinished()
 QString QtWalletMain::getXdagProgramState(en_xdag_program_state state)
 {
     switch(state){
+        case NINT:
+        return "";
         case INIT:
         return tr("Initializing.");
         case KEYS:
