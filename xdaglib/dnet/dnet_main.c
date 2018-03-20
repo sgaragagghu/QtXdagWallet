@@ -58,3 +58,9 @@ int dnet_init() {
 
     return err;
 }
+
+void dnet_uninit(){
+    //TODO: kill some thread release some resource
+
+    dnet_crypt_uninit();
+}

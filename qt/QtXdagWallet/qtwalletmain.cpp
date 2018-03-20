@@ -211,13 +211,15 @@ void QtWalletMain::initSignal()
 
     //connect xdag and ui slot
     connect(m_pXdagThread,&XdagWalletProcessThread::updateUI,this,&QtWalletMain::onXdagUpdateUI);
-    connect(m_pXdagThread,&XdagWalletProcessThread::stateChange,this,&QtWalletMain::onXdagStateChange);
+    connect(m_pXdagThread,&XdagWalletProcessThread::stateChange,this,&QtWalletMain::onXdagProcessStateChange);
+    connect(m_pXdagThread,&XdagWalletProcessThread::finished,this,&QtWalletMain::onXdagProcessFinished);
 
     //change language
     connect(m_pQMLanguage,SIGNAL(triggered(QAction *)),this,SLOT(onChangeLanguage(QAction *)));
 
     qRegisterMetaType<UpdateUiInfo>();
     qRegisterMetaType<UiNotifyMessage>();
+    qRegisterMetaType<XDAG_PROCESS_STATE>();
 }
 
 void QtWalletMain::onBtnConnectClicked()
@@ -225,7 +227,7 @@ void QtWalletMain::onBtnConnectClicked()
     m_pXdagThread->setPoolAddr(m_pLEPool->text().toStdString().c_str());
     //start xdag process thread
     if(m_pXdagThread->isStopped()){
-        m_pPBConnect->setDisabled(false);
+        m_pPBConnect->setEnabled(false);
         m_pXdagThread->start();
     }
 }
@@ -272,6 +274,8 @@ void QtWalletMain::onChangeLanguage(QAction *action)
     translateUI(lang);
 }
 
+//user reject type in auth info will terminate the
+//xdag process thread
 void QtWalletMain::onAuthRejected()
 {
     qDebug() <<  " auth rejected ";
@@ -342,18 +346,21 @@ void QtWalletMain::onXdagUpdateUI(UpdateUiInfo info){
         case en_event_set_pwd:
             m_pDLPwdType = new PwdDialog(0,DLG_SET_PWD);
             connect(m_pDLPwdType,SIGNAL(sendSetPwd(QString)),this,SLOT(onPwdSeted(QString)));
+            connect(m_pDLPwdType,SIGNAL(rejected()),this,SLOT(onAuthRejected()));
             m_pDLPwdType->exec();
         break;
 
         case en_event_retype_pwd:
             m_pDLPwdType = new PwdDialog(0,DLG_RETYPE_PWD);
             connect(m_pDLPwdType,SIGNAL(sendRetypePwd(QString)),this,SLOT(onPwdReTyped(QString)));
+            connect(m_pDLPwdType,SIGNAL(rejected()),this,SLOT(onAuthRejected()));
             m_pDLPwdType->exec();
         break;
 
         case en_event_set_rdm:
             m_pDLPwdType = new PwdDialog(0,DLG_TYPE_RDM);
             connect(m_pDLPwdType,SIGNAL(sendRdm(QString)),this,SLOT(onRdmTyped(QString)));
+            connect(m_pDLPwdType,SIGNAL(rejected()),this,SLOT(onAuthRejected()));
             m_pDLPwdType->exec();
         break;
 
@@ -393,13 +400,22 @@ void QtWalletMain::onXdagUpdateUI(UpdateUiInfo info){
     }
 }
 
-void QtWalletMain::onXdagStateChange(XDAG_PROCESS_STATE state)
+void QtWalletMain::onXdagProcessStateChange(XDAG_PROCESS_STATE state)
 {
     switch(state){
+        case XDAG_PROCESS_START:
+            m_pPBConnect->setEnabled(false);
+        break;
         case XDAG_PROCESS_STOP:
-            m_pPBConnect->setDisabled(true);
+            m_pPBConnect->setEnabled(true);
         break;
     }
+}
+
+void QtWalletMain::onXdagProcessFinished()
+{
+    qDebug() << " xdag process finished";
+    m_pPBConnect->setEnabled(true);
 }
 
 QString QtWalletMain::getXdagProgramState(en_xdag_program_state state)

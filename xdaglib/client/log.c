@@ -189,7 +189,7 @@ void xdag_app_log(en_xdag_app_log_level level,const char* file,int line,const ch
     return;
 }
 
-void xdag_app_log_finish(){
+void xdag_app_log_uninit(){
 
     pthread_mutex_lock(&app_log_mutex);
 

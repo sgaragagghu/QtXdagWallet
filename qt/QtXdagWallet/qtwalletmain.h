@@ -82,7 +82,9 @@ private:
     XdagCommonDefine::EN_XDAG_UI_LANG mLanguage;
 
     void onXdagUpdateUI(UpdateUiInfo info);
-    void onXdagStateChange(XDAG_PROCESS_STATE state);
+    void onXdagProcessStateChange(XDAG_PROCESS_STATE state);
+    void onXdagProcessFinished();
+
 private slots:
     void onBtnConnectClicked();
     void onButtonXferClicked();

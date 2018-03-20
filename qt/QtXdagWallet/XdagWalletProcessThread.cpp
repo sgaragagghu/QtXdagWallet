@@ -25,7 +25,7 @@ void XdagWalletProcessThread::Start()
 
 void XdagWalletProcessThread::Stop()
 {
-    QMutexLocker locker(m_pMutex);
+    moveStateTo(XDAG_PROCESS_STOP);
     this->quit();
     m_bStopped = true;
 }
@@ -42,6 +42,7 @@ void XdagWalletProcessThread::moveStateTo(XDAG_PROCESS_STATE state)
              <<" to " << getProcessStateString(state);
 
     //emit ui to do something
+    emit stateChange(state);
 
     //restrick user's operation
 }
@@ -127,7 +128,8 @@ void XdagWalletProcessThread::run()
     xdag_global_init();
 
     if(xdag_main(address) != 0){
-        qDebug() << " error while wallet initialized  ";
+        qDebug() << "xdag_main error while wallet initialized  ";
+        xdag_wrapper_uninit();
         this->Stop();
         return;
     }

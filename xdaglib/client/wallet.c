@@ -158,3 +158,19 @@ void xdag_wallet_finish(void)
 {
 	pthread_mutex_lock(&wallet_mutex);
 }
+
+/* release wallet resource while program exit */
+int xdag_wallet_uninit(void){
+    if(keys_arr){
+        free(keys_arr);
+        keys_arr = 0;
+    }
+    nkeys = 0;
+    maxnkeys = 0;
+//TODO:make sure def_key need release
+//    if(def_key){
+//        free(def_key);
+//        def_key = 0;
+//    }
+}
+

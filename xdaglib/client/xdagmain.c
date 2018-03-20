@@ -504,9 +504,10 @@ void xdag_show_state(xdag_hash_t hash)
 }
 
 void xdag_uninit(){
-    xdag_wallet_finish();
-    xdag_netdb_finish();
-    xdag_storage_finish();
-    xdag_mem_finish();
-    xdag_app_log_finish();
+    xdag_wallet_uninit();
+    xdag_netdb_uninit();
+    xdag_storage_uninit();
+    xdag_mem_uninit();
+    xdag_app_log_uninit();
+    xdag_transport_stop();
 }

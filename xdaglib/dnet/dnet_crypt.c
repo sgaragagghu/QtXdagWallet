@@ -308,7 +308,6 @@ int dnet_crypt_init(const char *version) {
     dfslib_random_init();
     if (crc_init()) {
         printf(" crc init error \n");
-        crc_uninit();
         return 2;
     }
 
@@ -328,7 +327,6 @@ int dnet_crypt_init(const char *version) {
                     res = (*g_input_password)("Password", pwd, 256);
                     if(res == -1){
                         fclose(f);
-                        f = 0;
                         return -1;
                     }
 
@@ -353,7 +351,6 @@ int dnet_crypt_init(const char *version) {
         f = fopen(KEYFILE, "wb");
 
         if (!f) {
-            crc_uninit();
             report_ui_walletinit_event(en_event_open_dnetfile_error,NULL);
             return 3;
         }
@@ -363,7 +360,6 @@ int dnet_crypt_init(const char *version) {
 
         res = (*g_input_password)("Set password", pwd, 256);
         if(res == -1){
-            crc_uninit();
             fclose(f);
             dnet_log_printf("user cancel password type in");
             return -1;
@@ -372,14 +368,12 @@ int dnet_crypt_init(const char *version) {
         dfslib_utf8_string(&str, pwd, strlen(pwd));
         res = (*g_input_password)("Re-type password", pwd1, 256);
         if(res == -1){
-            crc_uninit();
             fclose(f);
             dnet_log_printf("user cancel password re-type in");
             return -1;
         }
         dfslib_utf8_string(&str1, pwd1, strlen(pwd1));
         if (str.len != str1.len || memcmp(str.utf8, str1.utf8, str.len)) {
-            crc_uninit();
             fclose(f);
             report_ui_walletinit_event(en_event_pwd_not_same,NULL);
             return 4;
@@ -388,7 +382,6 @@ int dnet_crypt_init(const char *version) {
         if (str.len) set_user_crypt(&str);
         res = (*g_input_password)("Type random keys", buf, 256);
         if(res == -1){
-            crc_uninit();
             fclose(f);
             dnet_log_printf("user cancel random type in");
             return -1;
@@ -411,7 +404,6 @@ int dnet_crypt_init(const char *version) {
 
         //store public and private key to dnet.dat
         if (fwrite(keys, sizeof(struct dnet_keys), 1, f) != 1) {
-            crc_uninit();
             fclose(f);
             report_ui_walletinit_event(en_event_write_dnet_file_error,NULL);
             return 5;
@@ -428,7 +420,6 @@ int dnet_crypt_init(const char *version) {
 
     //add trust hosts
     if (!(host = dnet_add_host(&g_dnet_keys->pub, 0, 127 << 24 | 1, 0, DNET_ROUTE_LOCAL))) {
-        crc_uninit();
         report_ui_walletinit_event(en_event_add_trust_host_error,NULL);
         return 6;
     }
@@ -440,12 +431,15 @@ int dnet_crypt_init(const char *version) {
 
     int res = -dnet_test_keys();
     if(res){
-        //free the crc init table
-        crc_uninit();
         report_ui_walletinit_event(en_event_pwd_error,NULL);
     }
 
     return res;
+}
+
+void dnet_crypt_uninit(){
+    //uninit crc
+    crc_uninit();
 }
 
 static void dnet_session_init_crypt(struct dfslib_crypt *crypt, uint32_t sector[SECTOR_SIZE / 4]) {

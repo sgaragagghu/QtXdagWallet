@@ -24,6 +24,8 @@ typedef enum tag_XDAG_PROCESS_STATE{
     XDAG_PROCESS_STOP
 }XDAG_PROCESS_STATE;
 
+Q_DECLARE_METATYPE(XDAG_PROCESS_STATE)
+
 class XdagWalletProcessThread : public QThread
 {
     Q_OBJECT
