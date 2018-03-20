@@ -277,14 +277,12 @@ void QtWalletMain::onChangeLanguage(QAction *action)
     translateUI(lang);
 }
 
-//user reject type in auth info will terminate the
-//xdag process thread
+//user reject type in auth info will terminate the xdag process thread
 void QtWalletMain::onAuthRejected()
 {
     qDebug() <<  " auth rejected ";
     m_pXdagThread->wakeAuthTyped();
 }
-
 
 void QtWalletMain::onPwdTyped(QString pwd)
 {
@@ -392,13 +390,14 @@ void QtWalletMain::procUpdateUiInfo(UpdateUiInfo info){
     m_pLEBalance->clear();
     ui->statusBar->clearMessage();
 
-    //disable or enable connect button and send button
+    //not connected to the pool
     if(info.xdag_program_state >= INIT
             && info.xdag_program_state <= TRYP){
         m_pPBConnect->setEnabled(false);
         m_pPBXfer->setEnabled(false);
     }
 
+    //already connected to the pool
     if(info.xdag_program_state >= CTST){
         m_pPBConnect->setEnabled(false);
 
@@ -425,7 +424,12 @@ void QtWalletMain::procUpdateUiInfo(UpdateUiInfo info){
 
     ui->statusBar->showMessage(getXdagProgramState(info.xdag_program_state));
 }
-
+/*
+    process the xdag process thread state change
+    just process the following state at present:
+    XDAG_PROCESS_START,
+    XDAG_PROCESS_STOP
+*/
 void QtWalletMain::onXdagProcessStateChange(XDAG_PROCESS_STATE state)
 {
     switch(state){

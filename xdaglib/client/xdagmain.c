@@ -428,29 +428,53 @@ int xdag_main(const char *pool_arg)
     xdag_app_mess("Starting %s, version %s", g_progname, XDAG_VERSION);
 	
     xdag_app_mess("Starting synchonization engine...");
-    if (xdag_sync_init()) return -1;
+    if (xdag_sync_init()){
+        xdag_app_err(" xdag sync init error ");
+        return -1;
+    }
 	
     xdag_app_mess("Starting dnet transport...");
-    printf("Transport module: ");
-    if (xdag_transport_start(transport_flags, bindto, n_addrports, addrports)) return -1;
+    xdag_app_mess("Transport module: ");
+    if (xdag_transport_start(transport_flags, bindto, n_addrports, addrports)){
+        xdag_app_err(" xdag transport start error ");
+        return -1;
+    }
 	
     xdag_app_mess("Initializing log system...");
-    if (xdag_signal_init()) return -1;
+    if (xdag_signal_init()){
+        xdag_app_err(" xdag signal init error ");
+        return -1;
+    }
 	
     xdag_app_mess("Initializing cryptography...");
-    if (xdag_crypt_init(1)) return -1;
+    if (xdag_crypt_init(1)){
+        xdag_app_err(" xdag signal init error ");
+        return -1;
+    }
 	
     xdag_app_mess("Reading wallet...");
-    if (xdag_wallet_init()) return -1;
+    if (xdag_wallet_init()){
+        xdag_app_err(" xdag wallet init error ");
+        return -1;
+    }
 	
     xdag_app_mess("Initializing addresses...");
-    if (xdag_address_init()) return -1;
+    if (xdag_address_init()){
+        xdag_app_err(" xdag address init error ");
+        return -1;
+    }
 	
     xdag_app_mess("Starting blocks engine...");
-    if (start_regular_block_thread(0,-1)) return -1;
+    if (start_regular_block_thread(0,-1)){
+        xdag_app_err(" xdag start regular block thread error ");
+        return -1;
+    }
 	
     xdag_app_mess("Starting pool engine...");
-    if (xdag_start_wallet_mainthread(pool_arg)) return -1;
+    if (xdag_start_wallet_mainthread(pool_arg)){
+        xdag_app_err(" xdag start wallet main thread error ");
+        return -1;
+    }
 
     return 0;
 }
@@ -504,10 +528,15 @@ void xdag_show_state(xdag_hash_t hash)
 }
 
 void xdag_uninit(){
+
+    g_xdag_state = XDAG_STATE_INIT;
     xdag_wallet_uninit();
     xdag_netdb_uninit();
     xdag_storage_uninit();
     xdag_mem_uninit();
     xdag_app_log_uninit();
     xdag_transport_stop();
+
+    //reinit ui if needed
+    xdag_show_state(0);
 }
