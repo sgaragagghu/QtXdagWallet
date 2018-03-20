@@ -21,7 +21,7 @@ QQueue<UiNotifyMessage> g_MsgQueue;
 #define ADRESS_LINEEDIT_LEN 200
 #define QLABEL_LEN 60
 #define QLABLE_HEIGHT 25
-#define QPUSHBUTTON_LEN     60
+#define QPUSHBUTTON_LEN     80
 #define QPUSHBUTTON_HEIGHT  25
 
 
@@ -147,7 +147,7 @@ void QtWalletMain::initUI()
 
     m_pTranslator = new QTranslator;
 
-    setFixedSize(500,160);
+    setFixedSize(520,160);
 }
 
 void QtWalletMain::translateUI(XdagCommonDefine::EN_XDAG_UI_LANG lang)
@@ -407,6 +407,7 @@ void QtWalletMain::procUpdateUiInfo(UpdateUiInfo info){
 
     //not initialized
     if(info.xdag_program_state == NINT){
+        qDebug() << " wallet uninited ";
         m_pPBConnect->setEnabled(true);
         m_pPBDisConnect->setEnabled(false);
         m_pPBXfer->setEnabled(false);
