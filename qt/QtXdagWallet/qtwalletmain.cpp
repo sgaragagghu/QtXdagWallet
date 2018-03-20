@@ -76,6 +76,8 @@ void QtWalletMain::initUI()
     m_pLBAccount->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
     m_pLEBalance->setFixedSize(AMOUNT_LINEEDIT_LEN,QLINE_EDIT_HEIGHT);
     m_pLEAccount->setFixedSize(ADRESS_LINEEDIT_LEN,QLINE_EDIT_HEIGHT);
+    m_pLEAccount->setFocusPolicy(Qt::NoFocus);
+    m_pLEBalance->setFocusPolicy(Qt::NoFocus);
     m_pHBLAccount = new QHBoxLayout;
     m_pHBLAccount->setSpacing(0);
     m_pHBLAccount->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
@@ -99,6 +101,7 @@ void QtWalletMain::initUI()
     m_pLESendAmount->setFixedSize(AMOUNT_LINEEDIT_LEN,QLINE_EDIT_HEIGHT);
     m_pLERecvAddress->setFixedSize(ADRESS_LINEEDIT_LEN,QLINE_EDIT_HEIGHT);
     m_pPBXfer->setFixedSize(QPUSHBUTTON_LEN,QPUSHBUTTON_HEIGHT);
+    m_pPBXfer->setEnabled(false);
     m_pHBLTransfer = new QHBoxLayout;
     m_pHBLTransfer->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     m_pHBLTransfer->setSpacing(0);
@@ -379,25 +382,48 @@ void QtWalletMain::onXdagUpdateUI(UpdateUiInfo info){
 
         //update ui info
         case en_event_update_state:
-            m_pLEAccount->clear();
-            m_pLEBalance->clear();
-            ui->statusBar->clearMessage();
-
-            if(info.balance_state == en_balance_not_ready){
-                m_pLEBalance->setText(tr("Not Ready"));
-            }else{
-                m_pLEBalance->setText(info.balance);
-            }
-
-            if(info.address_state == en_address_not_ready){
-                m_pLEAccount->setText(tr("Not Ready"));
-            }else{
-                m_pLEAccount->setText(info.address);
-            }
-
-            ui->statusBar->showMessage(getXdagProgramState(info.xdag_program_state));
+            procUpdateUiInfo(info);
         break;
     }
+}
+
+void QtWalletMain::procUpdateUiInfo(UpdateUiInfo info){
+    m_pLEAccount->clear();
+    m_pLEBalance->clear();
+    ui->statusBar->clearMessage();
+
+    //disable or enable connect button and send button
+    if(info.xdag_program_state >= INIT
+            && info.xdag_program_state <= TRYP){
+        m_pPBConnect->setEnabled(false);
+        m_pPBXfer->setEnabled(false);
+    }
+
+    if(info.xdag_program_state >= CTST){
+        m_pPBConnect->setEnabled(false);
+
+        //address or balance not ready
+        if(info.address_state <= en_address_not_ready ||
+                info.balance_state <= en_balance_not_ready){
+            m_pPBXfer->setEnabled(false);
+        }else{
+            m_pPBXfer->setEnabled(true);
+        }
+    }
+
+    if(info.balance_state == en_balance_not_ready){
+        m_pLEBalance->setText(tr("Not Ready"));
+    }else{
+        m_pLEBalance->setText(info.balance);
+    }
+
+    if(info.address_state == en_address_not_ready){
+        m_pLEAccount->setText(tr("Not Ready"));
+    }else{
+        m_pLEAccount->setText(info.address);
+    }
+
+    ui->statusBar->showMessage(getXdagProgramState(info.xdag_program_state));
 }
 
 void QtWalletMain::onXdagProcessStateChange(XDAG_PROCESS_STATE state)

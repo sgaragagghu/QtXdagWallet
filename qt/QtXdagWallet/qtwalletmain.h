@@ -33,11 +33,6 @@ public:
 private:
     Ui::QtWalletMain *ui;
 
-    void initUI();
-    void translateUI(XdagCommonDefine::EN_XDAG_UI_LANG lang);
-    void initWorkThread();
-    void initSignal();
-
     QLabel *m_pLBPool;
     QLineEdit *m_pLEPool;
     QPushButton *m_pPBConnect;
@@ -81,11 +76,16 @@ private:
 
     XdagCommonDefine::EN_XDAG_UI_LANG mLanguage;
 
+    void initUI();
+    void translateUI(XdagCommonDefine::EN_XDAG_UI_LANG lang);
+    void initWorkThread();
+    void initSignal();
+    void procUpdateUiInfo(UpdateUiInfo info);
+
+private slots:
     void onXdagUpdateUI(UpdateUiInfo info);
     void onXdagProcessStateChange(XDAG_PROCESS_STATE state);
     void onXdagProcessFinished();
-
-private slots:
     void onBtnConnectClicked();
     void onButtonXferClicked();
     void onChangeLanguage(QAction *);
@@ -94,6 +94,8 @@ private slots:
     void onPwdSeted(QString pwd);
     void onPwdReTyped(QString pwd);
     void onRdmTyped(QString rdm);
+
+
 };
 
 #endif // QTWALLETMAIN_H
