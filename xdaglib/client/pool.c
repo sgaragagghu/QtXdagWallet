@@ -85,7 +85,6 @@ static int g_xdag_pool = 0;
 
 static int g_max_nminers = START_N_MINERS, g_max_nminers_ip = START_N_MINERS_IP, g_nminers = 0, g_socket = -1,
 	g_stop_mining = 1, g_stop_general_mining = 1;
-static double g_pool_fee = 0, g_pool_reward = 0, g_pool_direct = 0, g_pool_fund = 0;
 static struct miner *g_miners, g_local_miner, g_fund_miner;
 static struct pollfd *g_fds;
 static struct dfslib_crypt *g_crypt;
@@ -95,6 +94,10 @@ static pthread_mutex_t g_share_mutex = PTHREAD_MUTEX_INITIALIZER;
 static const char *g_miner_address;
 /* poiter to mutex for optimal share  */
 void *g_ptr_share_mutex = &g_share_mutex;
+
+pthread_cond_t g_pool_cancel_cond = PTHREAD_COND_INITIALIZER;       /* for pool thread safe quit */
+pthread_mutex_t g_pool_cancel_mutex = PTHREAD_MUTEX_INITIALIZER;    /* for pool thread safe quit */
+pthread_t g_pool_thread_t;
 
 #define diff2pay(d, n) ((n) ? exp((d) / (n) - 20) * (n) : 0)
 
@@ -172,9 +175,41 @@ int xdag_send_block_via_pool(struct xdag_block *b)
 	return send_to_pool(b->field, XDAG_BLOCK_FIELDS);
 }
 
+static void miner_net_thread_cleanup(void*arg){
+
+    xdag_debug("call miner net thread clean up");
+
+    pthread_mutex_unlock(&g_pool_mutex);
+    pthread_mutex_unlock(&g_share_mutex);
+
+    pthread_mutex_lock(&g_pool_cancel_mutex);
+
+    g_miner_address = NULL;
+    g_firstb = NULL;
+    g_lastb = NULL;
+    g_crypt = NULL;
+    g_max_nminers = START_N_MINERS;
+    g_max_nminers_ip = START_N_MINERS_IP;
+    g_nminers = 0;
+    g_socket = -1,
+    g_stop_mining = 1;
+    g_stop_general_mining = 1;
+    g_xdag_pool = 0;
+    g_xdag_mining_threads = 0;
+
+    pthread_cond_signal(&g_pool_cancel_cond);
+
+    xdag_debug(" pool state cancel signaled");
+
+    pthread_mutex_unlock(&g_pool_cancel_mutex);
+
+    xdag_debug("call xdag clean up finished");
+}
 
 static void *miner_net_thread(void *arg)
 {
+    int oldcancelstate;
+    int oldcanceltype;
     struct xdag_block b;
     struct xdag_field data[2];
     xdag_hash_t hash;
@@ -190,11 +225,17 @@ static void *miner_net_thread(void *arg)
     time_t t00, t0, tt;
     int ndata, maxndata;
 
+    pthread_setcancelstate(PTHREAD_CANCEL_ENABLE,&oldcancelstate);
+    pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED,&oldcanceltype);
+    pthread_cleanup_push(miner_net_thread_cleanup,(void*)mess);
+
     while (!g_xdag_sync_on) {
+        pthread_testcancel();
         sleep(1);
     }
 
-begin:
+    pthread_testcancel();
+
     ndata = 0;
     maxndata = sizeof(struct xdag_field);
     t0 = t00 = 0;
@@ -202,20 +243,20 @@ begin:
 
     if (xdag_get_our_block(hash)) {
         mess = "can't create a block";
-        goto err;
+        pthread_exit((void*)NULL);
     }
 
     int64_t pos = xdag_get_block_pos(hash, &t);
 
     if (pos < 0) {
         mess = "can't find the block";
-        goto err;
+        pthread_exit((void*)NULL);
     }
 
     struct xdag_block *blk = xdag_storage_load(hash, t, pos, &b);
     if (!blk) {
         mess = "can't load the block";
-        goto err;
+        pthread_exit((void*)NULL);
     }
     if (blk != &b) memcpy(&b, blk, sizeof(struct xdag_block));
 
@@ -225,7 +266,7 @@ begin:
     if (g_socket == INVALID_SOCKET) {
         pthread_mutex_unlock(&g_pool_mutex);
         mess = "cannot create a socket";
-        goto err;
+        pthread_exit((void*)NULL);
     }
     if (fcntl(g_socket, F_SETFD, FD_CLOEXEC) == -1) {
         xdag_err("pool  : can't set FD_CLOEXEC flag on socket %d, %s\n", g_socket, strerror(errno));
@@ -241,7 +282,7 @@ begin:
     if (!s) {
         pthread_mutex_unlock(&g_pool_mutex);
         mess = "host is not given";
-        goto err;
+        pthread_exit((void*)NULL);
     }
     if (!strcmp(s, "any")) {
         peeraddr.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -251,7 +292,7 @@ begin:
             pthread_mutex_unlock(&g_pool_mutex);
             mess = "cannot resolve host ", mess1 = s;
             res = h_errno;
-            goto err;
+            pthread_exit((void*)NULL);
         }
         // Write resolved IP address of a server to the address structure
         memmove(&peeraddr.sin_addr.s_addr, host->h_addr_list[0], 4);
@@ -262,7 +303,7 @@ begin:
     if (!s) {
         pthread_mutex_unlock(&g_pool_mutex);
         mess = "port is not given";
-        goto err;
+        pthread_exit((void*)NULL);
     }
     peeraddr.sin_port = htons(atoi(s));
 
@@ -276,23 +317,24 @@ begin:
     if (res) {
         pthread_mutex_unlock(&g_pool_mutex);
         mess = "cannot connect to the pool";
-        goto err;
+        pthread_exit((void*)NULL);
     }
 
     if (send_to_pool(b.field, XDAG_BLOCK_FIELDS) < 0) {
         mess = "socket is closed";
-        goto err;
+        pthread_exit((void*)NULL);
     }
 
     for (;;) {
         struct pollfd p;
 
+        pthread_testcancel();
         pthread_mutex_lock(&g_pool_mutex);
 
         if (g_socket < 0) {
                 pthread_mutex_unlock(&g_pool_mutex);
                 mess = "socket is closed";
-                goto err;
+                pthread_exit((void*)NULL);
         }
 
         p.fd = g_socket;
@@ -308,13 +350,13 @@ begin:
         if (p.revents & POLLHUP) {
             pthread_mutex_unlock(&g_pool_mutex);
             mess = "socket hangup";
-            goto err;
+            pthread_exit((void*)NULL);
         }
 
         if (p.revents & POLLERR) {
             pthread_mutex_unlock(&g_pool_mutex);
             mess = "socket error";
-            goto err;
+            pthread_exit((void*)NULL);
         }
 
         if (p.revents & POLLIN) {
@@ -322,7 +364,7 @@ begin:
             if (res < 0) {
                 pthread_mutex_unlock(&g_pool_mutex);
                 mess = "read error on socket";
-                goto err;
+                pthread_exit((void*)NULL);
             }
             ndata += res;
             if (ndata == maxndata) {
@@ -380,28 +422,18 @@ begin:
 
             if (res) {
                 mess = "write error on socket";
-                goto err;
+                pthread_exit((void*)NULL);
             }
         } else {
             pthread_mutex_unlock(&g_pool_mutex);
         }
+
+        pthread_testcancel();
     }
+
+    pthread_cleanup_pop(0);
 
     return 0;
-
- err:
-    xdag_err("Miner : %s %s (error %d)", mess, mess1, res);
-
-    pthread_mutex_lock(&g_pool_mutex);
-    if (g_socket != INVALID_SOCKET) {
-        close(g_socket);
-        g_socket = INVALID_SOCKET;
-    }
-    pthread_mutex_unlock(&g_pool_mutex);
-
-    sleep(5);
-
-    goto begin;
 }
 
 static int crypt_start(void)
@@ -431,7 +463,7 @@ static int crypt_start(void)
 */
 int xdag_start_wallet_mainthread(const char *pool_arg)
 {
-	pthread_t th;
+    //pthread_t th;
 	int i, res;
 
 	g_xdag_pool = 0;
@@ -449,13 +481,13 @@ int xdag_start_wallet_mainthread(const char *pool_arg)
 	memset(&g_local_miner, 0, sizeof(struct miner));
 	memset(&g_fund_miner, 0, sizeof(struct miner));
 
-	res = pthread_create(&th, 0, miner_net_thread, (void*)pool_arg);
+    res = pthread_create(&g_pool_thread_t, 0, miner_net_thread, (void*)pool_arg);
 	if (res) {
 		printf(" miner_net_thread create failed \n");
 		return -1;
 	}
 
-	pthread_detach(th);
+    pthread_detach(g_pool_thread_t);
 		
 	return 0;
 }
@@ -487,20 +519,20 @@ static int print_miner(FILE *out, int n, struct miner *m)
 /* output to the file a list of miners */
 int xdag_print_miners(FILE *out)
 {
-	int i, res;
+    int i, res;
 
-	fprintf(out, "List of miners:\n"
-			" NN  Address for payment to            Status   IP and port            in/out bytes      nopaid shares\n"
-			"------------------------------------------------------------------------------------------------------\n");
-	res = print_miner(out, -1, &g_local_miner);
+    fprintf(out, "List of miners:\n"
+            " NN  Address for payment to            Status   IP and port            in/out bytes      nopaid shares\n"
+            "------------------------------------------------------------------------------------------------------\n");
+    res = print_miner(out, -1, &g_local_miner);
 
-	for (i = 0; i < g_nminers; ++i) {
-		res += print_miner(out, i, g_miners + i);
-	}
+    for (i = 0; i < g_nminers; ++i) {
+        res += print_miner(out, i, g_miners + i);
+    }
 
-	fprintf(out,
-			"------------------------------------------------------------------------------------------------------\n"
-			"Total %d active miners.\n", res);
-	
-	return res;
+    fprintf(out,
+            "------------------------------------------------------------------------------------------------------\n"
+            "Total %d active miners.\n", res);
+
+    return res;
 }

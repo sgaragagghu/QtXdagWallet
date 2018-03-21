@@ -78,6 +78,10 @@ static pthread_mutex_t block_mutex;
 //light wallet set g_light_mode default value 1
 static int g_light_mode = 1;
 
+pthread_cond_t g_block_cancel_cond = PTHREAD_COND_INITIALIZER;       /* for block thread safe quit */
+pthread_mutex_t g_block_cancel_mutex = PTHREAD_MUTEX_INITIALIZER;    /* for block thread safe quit */
+pthread_t g_block_thread_t;
+
 static uint64_t get_timestamp(void)
 {
 	struct timeval tp;
@@ -952,27 +956,63 @@ static void reset_callback(struct ldus_rbtree *node)
 	free(node);
 }
 
+static void work_thread_cleanup(){
+    xdag_app_debug(" work thread clean up called ");
+
+    pthread_mutex_unlock(&block_mutex);
+    pthread_mutex_lock(&g_block_cancel_mutex);
+
+    if (xdag_free_all()) {
+        ldus_rbtree_walk_up(root, reset_callback);
+    }
+
+    root = 0;
+    g_balance = 0;
+    g_xdag_sync_on = 0;
+    g_xdag_mining_threads = 0;
+    g_xdag_state = XDAG_STATE_NINT;
+    top_main_chain = pretop_main_chain = 0;
+    ourfirst = ourlast = noref_first = noref_last = 0;
+    memset(&g_xdag_stats, 0, sizeof(g_xdag_stats));
+    memset(&g_xdag_extstats, 0, sizeof(g_xdag_extstats));
+
+    pthread_cond_signal(&g_block_cancel_cond);
+
+    pthread_mutex_unlock(&g_block_cancel_mutex);
+    xdag_app_debug(" work thread clean up finished ");
+}
+
 // main thread which works with block
 static void *work_thread(void *arg)
 {
-	xdag_time_t t = XDAG_ERA, conn_time = 0, sync_time = 0, t0;
+    int oldcancelstate;
+    int oldcanceltype;
+    xdag_time_t t = XDAG_ERA,conn_time = 0, sync_time = 0, t0;
 	int n_mining_threads = (int)(unsigned)(uintptr_t)arg, sync_thread_running = 0;
 	struct block_internal *ours;
 	uint64_t nhashes0 = 0, nhashes = 0;
 	pthread_t th;
 
- begin:
+    pthread_setcancelstate(PTHREAD_CANCEL_ENABLE,&oldcancelstate);
+    pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED,&oldcanceltype);
+
+    pthread_cleanup_push(work_thread_cleanup,NULL);
+
 	// loading block from the local storage
 	g_xdag_state = XDAG_STATE_LOAD;
 	xdag_mess("Loading blocks from local storage...");
 	xdag_show_state(0);
 	xdag_load_blocks(t, get_timestamp(), &t, add_block_callback);
 
+begin:
 	g_xdag_sync_on = 1;
         
 	for (;;) {
 		unsigned nblk;
 		
+        //test is canceled while ui disconnected from the pool
+        pthread_testcancel();
+
 		t0 = t;
 		t = get_timestamp();
 		nhashes0 = nhashes;
@@ -1015,7 +1055,8 @@ static void *work_thread(void *arg)
 			pthread_mutex_unlock(&block_mutex);
 			conn_time = sync_time = 0;
 
-			goto begin;
+            goto begin;
+
 		} else if (t > (g_xdag_last_received << 10) && t - (g_xdag_last_received << 10) > 3 * MAIN_CHAIN_PERIOD) {
 			g_xdag_state = (g_light_mode ? (g_xdag_testnet ? XDAG_STATE_TTST : XDAG_STATE_TRYP)
 								 : (g_xdag_testnet ? XDAG_STATE_WTST : XDAG_STATE_WAIT));
@@ -1051,12 +1092,15 @@ static void *work_thread(void *arg)
 		pthread_mutex_unlock(&block_mutex);
 		xdag_show_state(ours ? ours->hash : 0);
 
+        //test is canceled while ui disconnected from the pool
+        pthread_testcancel();
+
 		while (get_timestamp() - t < 1024) {
 			sleep(1);
 		}
 	}
 
-	return 0;
+    pthread_cleanup_pop(0);
 }
 
 /* start of regular block processing
@@ -1067,7 +1111,7 @@ static void *work_thread(void *arg)
 int start_regular_block_thread(int n_mining_threads, int miner_address)
 {
 	pthread_mutexattr_t attr;
-	pthread_t th;
+    //pthread_t th;
 	int res;
 
 	//do nothing in windows ,memmap file in linux
@@ -1080,9 +1124,9 @@ int start_regular_block_thread(int n_mining_threads, int miner_address)
 	pthread_mutexattr_init(&attr);
 	pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
 	pthread_mutex_init(&block_mutex, &attr);
-	res = pthread_create(&th, 0, work_thread, (void*)(uintptr_t)(unsigned)n_mining_threads);
+    res = pthread_create(&g_block_thread_t, 0, work_thread, (void*)(uintptr_t)(unsigned)n_mining_threads);
 	if (!res) {
-		pthread_detach(th);
+        pthread_detach(g_block_thread_t);
 	}
 	
 	return res;
